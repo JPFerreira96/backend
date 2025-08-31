@@ -1,0 +1,11 @@
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\config\SecurityConfig.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\domain\User.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\repository\UserRepository.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\security\JwtFilter.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\security\JwtService.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\service\UserService.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\UserApplication.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\web\dto\UserDTOs.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\web\InternalUserController.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\web\UserController.java
+C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\user-service\src\main\java\com\acme\user\web\UserMapper.java

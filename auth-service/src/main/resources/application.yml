@@ -1,0 +1,17 @@
+server:
+  port: 8081
+
+jwt:
+  issuer: users-cards-api
+  audience: users-cards-web
+  access-ttl-minutes: 15
+  secret-base64: ${JWT_SECRET_BASE64:}
+
+services:
+  user:
+    base-url: http://localhost:8082
+
+internal:
+  secret: ${INTERNAL_API_SECRET:change-me}
+
+springdoc.swagger-ui.path: /swagger

@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  main:
+    web-application-type: reactive
+
+spring.cloud.gateway:
+  default-filters:
+    - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+  routes:
+    - id: auth
+      uri: http://localhost:8081
+      predicates: [ Path=/api/auth/** ]
+    - id: users
+      uri: http://localhost:8082
+      predicates: [ Path=/api/users/**, Path=/api/internal/users/** ]
+    - id: cards
+      uri: http://localhost:8083
+      predicates: [ Path=/api/cards/** ]
+
+  globalcors:
+    corsConfigurations:
+      '[/**]':
+        allowedOrigins: "http://localhost:4200"
+        allowedMethods: "*"
+        allowedHeaders: "*"
+        allowCredentials: true
+
+management.endpoints.web.exposure.include: health,info
