@@ -29,5 +29,6 @@ jwt:
 
 internal:
   secret: ${INTERNAL_API_SECRET:change-me}
+  
 
 springdoc.swagger-ui.path: /swagger
