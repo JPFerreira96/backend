@@ -1,4 +1,4 @@
-package main.java.com.example.gateway;
+package com.example.gateway;
 
 import java.util.List;
 
