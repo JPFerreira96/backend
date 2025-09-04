@@ -1,0 +1,14 @@
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\Application.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\controller\AuthController.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\controller\UserController.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\dto\AuthResponse.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\dto\LoginRequest.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\dto\SignupRequest.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\model\Card.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\model\Role.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\model\User.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\repository\UserRepository.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\security\JwtAuthFilter.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\security\JwtUtil.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\security\WebSecurityConfig.java
+C:\Users\Júlio Paulo\Desktop\bus-card-management\backend\user-service\src\main\java\com\example\userservice\service\UserService.java

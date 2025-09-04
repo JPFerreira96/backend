@@ -1,0 +1,7 @@
+com\example\cardservice\model\Card$TipoCartao.class
+com\example\cardservice\repository\CardRepository.class
+com\example\cardservice\service\CardService.class
+com\example\cardservice\controller\CardController.class
+com\example\cardservice\dto\CardDto.class
+com\example\cardservice\model\Card.class
+com\example\cardservice\Application.class
