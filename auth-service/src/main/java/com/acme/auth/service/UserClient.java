@@ -1,5 +1,7 @@
 package com.acme.auth.service;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -60,6 +62,37 @@ public class UserClient {
       System.out.println("[UserClient] " + sc.value() + " ao buscar " + email +
           " body=" + e.getResponseBodyAsString());
       if (sc.equals(HttpStatus.NOT_FOUND)) return null;
+      if (sc.equals(HttpStatus.FORBIDDEN)) {
+        throw new IllegalStateException("Acesso interno negado (X-Internal-Secret divergente).");
+      }
+      throw e;
+    }
+  }
+
+  /** Cria um usuário através do endpoint interno */
+  public InternalUser createUser(String name, String email, String passwordHash, String role) {
+    try {
+      var createRequest = Map.of(
+        "name", name,
+        "email", email,
+        "passwordHash", passwordHash,
+        "role", role != null ? role : "ROLE_USER"
+      );
+
+      return http.post()
+          .uri("/api/internal/users/create")
+          .header("X-Internal-Secret", internalSecret)
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(createRequest)
+          .retrieve()
+          .body(InternalUser.class);
+    } catch (RestClientResponseException e) {
+      var sc = e.getStatusCode();
+      System.out.println("[UserClient] " + sc.value() + " ao criar usuário " + email +
+          " body=" + e.getResponseBodyAsString());
+      if (sc.equals(HttpStatus.CONFLICT)) {
+        throw new IllegalArgumentException("Email já em uso");
+      }
       if (sc.equals(HttpStatus.FORBIDDEN)) {
         throw new IllegalStateException("Acesso interno negado (X-Internal-Secret divergente).");
       }

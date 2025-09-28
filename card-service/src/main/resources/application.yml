@@ -18,6 +18,8 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
+    out-of-order: true
 
 jwt:
   issuer: users-cards-api

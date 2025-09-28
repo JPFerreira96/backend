@@ -1,15 +1,22 @@
 package com.acme.user.service;
 
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.acme.user.domain.User;
 import com.acme.user.repository.UserRepository;
 import com.acme.user.web.UserMapper;
-import com.acme.user.web.dto.UserDTOs.*;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List; import java.util.NoSuchElementException; import java.util.UUID;
+import com.acme.user.web.dto.UserDTOs.CreateUserRequest;
+import com.acme.user.web.dto.UserDTOs.UpdateUserRequest;
+import com.acme.user.web.dto.UserDTOs.UserResponse;
 
 @Service
 public class UserService {
@@ -38,4 +45,12 @@ public class UserService {
   @Transactional public void delete(UUID id){ repo.deleteById(id); }
 
   public User internalFindByEmail(String email){ return repo.findByEmail(email).orElse(null); }
+
+  /** Método interno para criar usuário com hash já fornecido (para auth-service) */
+  @Transactional
+  public User createUserWithHash(String name, String email, String passwordHash, String role) {
+    repo.findByEmail(email).ifPresent(u -> { throw new IllegalArgumentException("email em uso"); });
+    var u = User.create(name, email, passwordHash, role != null ? role : "ROLE_USER");
+    return repo.save(u);
+  }
 }

@@ -50,6 +50,50 @@ public class AuthController {
   // return Map.of("token", token);
   // }
 
+  @PostMapping("/signup")
+  public Map<String, Object> signup(@RequestBody SignupRequest req) {
+    System.out.println("Signup de " + req.email());
+    
+    // Verificar se usuário já existe
+    var existingUser = users.findByEmail(req.email());
+    if (existingUser != null) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
+    }
+    
+    try {
+      // Hash da senha
+      String hashedPassword = encoder.encode(req.password());
+      
+      // Criar usuário no user-service
+      var newUser = users.createUser(req.name(), req.email(), hashedPassword, req.role());
+      
+      // Gerar token JWT para o usuário criado
+      var token = jwt.issue(newUser.getId(), newUser.getRole());
+      
+      var userInfo = Map.of(
+          "id", newUser.getId(),
+          "name", req.name(),
+          "email", newUser.getEmail(),
+          "role", newUser.getRole()
+      );
+      
+      return Map.<String, Object>of(
+        "message", "Usuário criado com sucesso!",
+        "status", "success",
+        "email", req.email(),
+        "token", token,
+        "user", userInfo
+      );
+      
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+    } catch (Exception e) {
+      System.err.println("Erro ao criar usuário: " + e.getMessage());
+      e.printStackTrace();
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno ao criar usuário");
+    }
+  }
+
   @PostMapping("/login")
   public Map<String, String> login(@RequestBody LoginRequest req) {
     System.out.println("Login de " + req.email());
@@ -61,4 +105,6 @@ public class AuthController {
     var token = jwt.issue(u.getId(), u.getRole());
     return Map.of("token", token);
   }
+
+  public record SignupRequest(String name, String email, String password, String role) {}
 }
