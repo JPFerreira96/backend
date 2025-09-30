@@ -53,3 +53,32 @@ pnpm-debug.log*
 *.war
 *.ear
 *.iml
+
+# Scripts de desenvolvimento local (não devem ir para produção)
+*.bat
+*.cmd
+*.sh
+
+# Arquivos SQL temporários e dumps
+*.sql.backup
+*.sql.bak
+dump*.sql
+backup*.sql
+
+# Diretórios target do Maven (já deveriam estar ignorados)
+target/
+*/target/
+
+# Logs específicos do Spring Boot
+spring.log
+application.log
+
+# Arquivos de configuração IDE específicos
+.vscode/
+.idea/
+*.iws
+*.ipr
+
+# Arquivos temporários do sistema
+Thumbs.db
+Desktop.ini
