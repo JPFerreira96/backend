@@ -1,8 +1,6 @@
 com\acme\auth\AuthApplication.class
-com\acme\auth\web\AuthController.class
 com\acme\auth\security\JwtFilter.class
 com\acme\auth\service\UserClient$InternalUser.class
 com\acme\auth\security\JwtService.class
 com\acme\auth\config\SecurityConfig.class
 com\acme\auth\service\UserClient.class
-com\acme\auth\web\AuthController$LoginRequest.class
