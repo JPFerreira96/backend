@@ -119,6 +119,16 @@
           <release>${java.version}</release>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-maven-plugin</artifactId>
+        <configuration>
+          <url>jdbc:mysql://localhost:3306/db_cards?useSSL=false&amp;serverTimezone=UTC&amp;allowPublicKeyRetrieval=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf8</url>
+          <user>root</user>
+          <password></password>
+          <cleanDisabled>false</cleanDisabled>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>

@@ -18,6 +18,9 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    validate-on-migrate: false  # Ignora validação em desenvolvimento
+    out-of-order: true          # Permite migrações fora de ordem
+    baseline-on-migrate: true   # Cria baseline automático se necessário
 
 jwt:
   issuer: users-cards-api

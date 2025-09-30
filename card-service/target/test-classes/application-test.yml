@@ -1,0 +1,42 @@
+spring:
+  profiles:
+    active: test
+  
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        '[format_sql]': true
+    show-sql: true
+  
+  h2:
+    console:
+      enabled: true
+
+# Configurações de teste
+logging:
+  level:
+    '[com.acme]': DEBUG
+    '[org.springframework.security]': DEBUG
+    '[org.hibernate.SQL]': DEBUG
+
+# Configuração JWT para testes
+jwt:
+  secret: test-secret-key-for-jwt-token-generation-in-test-environment
+  expiration: 86400000 # 24 horas
+
+# Configuração de secret interno para testes
+internal:
+  secret: test-internal-secret-for-microservice-communication
+
+# Mock do card-service
+card-service:
+  url: http://localhost:8083

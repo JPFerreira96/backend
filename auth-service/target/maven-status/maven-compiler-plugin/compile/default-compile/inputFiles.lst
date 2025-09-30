@@ -1,6 +1,6 @@
-C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\auth-service\src\main\java\com\acme\auth\config\SecurityConfig.java
-C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\auth-service\src\main\java\com\acme\auth\AuthApplication.java
-C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\auth-service\src\main\java\com\acme\auth\security\JwtFilter.java
-C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\auth-service\src\main\java\com\acme\auth\security\JwtService.java
-C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\auth-service\src\main\java\com\acme\auth\service\UserClient.java
-C:\Users\Júlio Paulo\Documents\GitHub\user_card\backend\auth-service\src\main\java\com\acme\auth\web\AuthController.java
+C:\Users\Júlio Paulo\Documents\GitHub\user-card-crud-application\backend\auth-service\src\main\java\com\acme\auth\AuthApplication.java
+C:\Users\Júlio Paulo\Documents\GitHub\user-card-crud-application\backend\auth-service\src\main\java\com\acme\auth\config\SecurityConfig.java
+C:\Users\Júlio Paulo\Documents\GitHub\user-card-crud-application\backend\auth-service\src\main\java\com\acme\auth\security\JwtFilter.java
+C:\Users\Júlio Paulo\Documents\GitHub\user-card-crud-application\backend\auth-service\src\main\java\com\acme\auth\service\UserClient.java
+C:\Users\Júlio Paulo\Documents\GitHub\user-card-crud-application\backend\auth-service\src\main\java\com\acme\auth\security\JwtService.java
+C:\Users\Júlio Paulo\Documents\GitHub\user-card-crud-application\backend\auth-service\src\main\java\com\acme\auth\web\AuthController.java

@@ -52,4 +52,12 @@ public class User {
   public void changeRole(String r){
     this.role=r;
   }
+  
+  public void changeEmail(String e) {
+    this.email = e;
+  }
+  
+  public void changePassword(String hashedPassword) {
+    this.passwordHash = hashedPassword;
+  }
 }
