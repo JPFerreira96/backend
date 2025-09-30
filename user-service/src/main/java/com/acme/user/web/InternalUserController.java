@@ -39,8 +39,13 @@ public class InternalUserController {
     createUserReq.role = req.get("role");
     
     // Criar usuário através do serviço interno
-    var user = svc.createUserWithHash(req.get("name"), req.get("email"), req.get("passwordHash"), req.get("role"));
+    var user = svc.internalCreateUser(createUserReq);
+    // Update with the provided password hash
+    user.changePassword(req.get("passwordHash"));
     
-    return Map.of("id", user.getId().toString(), "email", user.getEmail(), "passwordHash", user.getPasswordHash(), "role", user.getRole());
+    return Map.of("id", user.getId().toString(), 
+                  "email", user.getEmail(), 
+                  "passwordHash", user.getPasswordHash(), 
+                  "role", user.getRole());
   }
 }

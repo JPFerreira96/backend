@@ -229,6 +229,32 @@ public class UserService {
     }
 
     /**
+     * Cria usuário para uso interno (retorna User diretamente)
+     */
+    @Transactional
+    public User internalCreateUser(CreateUserRequest request) {
+        log.debug("Criando usuário interno: {}", request.email);
+        
+        // Validação de email único
+        repository.findByEmail(request.email).ifPresent(u -> {
+            throw new IllegalArgumentException("Email já está em uso");
+        });
+        
+        // Criação do usuário
+        User user = User.create(
+            request.name,
+            request.email,
+            encoder.encode(request.password),
+            request.role != null ? request.role : "ROLE_USER"
+        );
+        
+        User savedUser = repository.save(user);
+        log.info("Usuário interno criado: {} (ID: {})", savedUser.getEmail(), savedUser.getId());
+        
+        return savedUser;
+    }
+
+    /**
      * Mapeia User para UserResponse incluindo cartões
      */
     private UserResponse mapToResponseWithCards(User user) {
