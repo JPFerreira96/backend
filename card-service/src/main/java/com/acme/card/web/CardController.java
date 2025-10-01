@@ -49,6 +49,19 @@ public class CardController {
 
     // === OPERAÇÕES GERAIS DE CARTÕES ===
 
+    @GetMapping("/me")
+    @Operation(summary = "Lista meus cartões", description = "Retorna os cartões do usuário logado")
+    public ResponseEntity<List<CardResponse>> getMyCards(Authentication authentication) {
+        try {
+            UUID authUserId = UUID.fromString(authentication.getName());
+            List<CardResponse> cards = cardService.getUserCards(authUserId, authUserId, false);
+            return ResponseEntity.ok(cards);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(List.of()); // Retorna lista vazia em caso de erro
+        }
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Lista todos os cartões", description = "Retorna todos os cartões do sistema (apenas ADMIN)")

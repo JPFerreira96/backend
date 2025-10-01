@@ -41,8 +41,9 @@ public class JwtFilter implements Filter {
     try {
       var claims = jwt.parse(auth.substring(7)).getPayload();
       var role = String.valueOf(claims.get("role"));
+      var authority = role.toUpperCase().startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase();
       var authToken = new UsernamePasswordAuthenticationToken(
-          claims.getSubject(), null, List.of(new SimpleGrantedAuthority(role)));
+          claims.getSubject(), null, List.of(new SimpleGrantedAuthority(authority)));
       SecurityContextHolder.getContext().setAuthentication(authToken);
       chain.doFilter(request, response);
     } catch (Exception e) {

@@ -46,6 +46,7 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
     config.addAllowedOriginPattern("http://localhost:4200"); // Usando addAllowedOriginPattern
+    config.addAllowedOriginPattern("http://localhost:4201"); // Porta alternativa Angular
     config.addAllowedOriginPattern("http://example.com");    // Usando addAllowedOriginPattern
     config.addAllowedMethod("GET");
     config.addAllowedMethod("POST");

@@ -32,7 +32,6 @@ public class SecurityConfig {
       )
       .authorizeHttpRequests(auth -> auth
         .requestMatchers("/swagger**", "/v3/api-docs/**", "/actuator/health").permitAll()
-        .requestMatchers("/api/auth/**").permitAll()
         .anyRequest().authenticated()
       )
       .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class);
@@ -45,6 +44,7 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
     config.addAllowedOriginPattern("http://localhost:4200"); // Usando addAllowedOriginPattern
+    config.addAllowedOriginPattern("http://localhost:4201"); // Porta alternativa Angular
     config.addAllowedOriginPattern("http://example.com");    // Usando addAllowedOriginPattern
     config.addAllowedMethod("GET");
     config.addAllowedMethod("POST");

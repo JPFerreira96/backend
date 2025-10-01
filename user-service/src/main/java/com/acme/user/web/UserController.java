@@ -49,6 +49,15 @@ public class UserController {
 
     // === OPERAÇÕES CRUD DE USUÁRIOS ===
 
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @Operation(summary = "Busca dados do usuário logado", description = "Retorna os dados do usuário autenticado")
+    @ApiResponse(responseCode = "200", description = "Dados do usuário retornados com sucesso")
+    public UserResponse getCurrentUser(Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        return userService.getUserById(userId);
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Lista todos os usuários", description = "Retorna uma lista de todos os usuários cadastrados")
