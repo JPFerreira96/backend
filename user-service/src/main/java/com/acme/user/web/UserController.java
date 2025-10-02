@@ -58,6 +58,41 @@ public class UserController {
         return userService.getUserById(userId);
     }
 
+    @PutMapping("/me")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @Operation(summary = "Atualiza dados do usuário logado", description = "Permite ao usuário logado atualizar seus próprios dados")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Dados atualizados com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "409", description = "Email já está em uso")
+    })
+    public UserResponse updateMyProfile(
+            @Parameter(description = "Dados a serem atualizados") @Valid @RequestBody UpdateUserRequest request,
+            Authentication authentication) {
+        
+        UUID userId = UUID.fromString(authentication.getName());
+        // Usuário pode atualizar seus próprios dados, passa como admin=false mas autorizado
+        return userService.updateUser(userId, request, userId, true);
+    }
+
+    @PutMapping("/me/password")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @Operation(summary = "Altera senha do usuário logado", description = "Permite ao usuário logado alterar sua própria senha")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Senha alterada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Senha atual incorreta ou dados inválidos"),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    public ResponseEntity<Void> changeMyPassword(
+            @Parameter(description = "Dados para alteração de senha") @Valid @RequestBody ChangePasswordRequest request,
+            Authentication authentication) {
+        
+        UUID userId = UUID.fromString(authentication.getName());
+        // Usuário pode alterar sua própria senha
+        userService.changePassword(userId, request, userId, true);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Lista todos os usuários", description = "Retorna uma lista de todos os usuários cadastrados")

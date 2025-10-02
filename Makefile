@@ -23,7 +23,7 @@ run-auth: ## Inicia o auth-service (porta 8081)
 	@echo "🚀 Iniciando auth-service..."
 	@cd auth-service && mvn spring-boot:run
 
-run-user: ## Inicia o user-service (porta 8082)
+run-user: ## Inicia o user-service (porta 8084)
 	@echo "🚀 Iniciando user-service..."
 	@cd user-service && mvn spring-boot:run
 

@@ -52,7 +52,9 @@ public class SecurityConfig {
     config.addAllowedMethod("POST");
     config.addAllowedMethod("PUT");
     config.addAllowedMethod("DELETE");
+    config.addAllowedMethod("OPTIONS"); // Importante para preflight requests
     config.addAllowedHeader("*"); // Permite qualquer cabeçalho
+    config.setAllowCredentials(true); // Permite credenciais (importante para JWT)
     source.registerCorsConfiguration("/**", config); // Aplica as configurações de CORS a todas as URLs
     return source;
   }

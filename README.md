@@ -6,7 +6,7 @@ Aplicação backend para gerenciamento de usuários e cartões, desenvolvida em 
 
 Microserviços usando Spring Boot:
 - **auth-service** (8081) - Autenticação e autorização
-- **user-service** (8082) - Gerenciamento de usuários  
+- **user-service** (8084) - Gerenciamento de usuários  
 - **card-service** (8083) - Gerenciamento de cartões
 - **gateway** (8080) - API Gateway
 
@@ -75,7 +75,7 @@ mvn test
 
 - **Gateway**: http://localhost:8080
 - **Auth**: http://localhost:8081/swagger
-- **Users**: http://localhost:8082/swagger  
+- **Users**: http://localhost:8084/swagger  
 - **Cards**: http://localhost:8083/swagger
 
 ## 🔐 Variáveis de Ambiente

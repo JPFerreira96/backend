@@ -1,0 +1,4 @@
+com\acme\gateway\config\CorsConfig.class
+com\acme\gateway\controller\UserProxyController.class
+com\acme\gateway\GatewayApplication.class
+com\acme\gateway\config\AuthHeaderFilter.class

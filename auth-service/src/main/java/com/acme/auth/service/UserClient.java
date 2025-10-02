@@ -30,7 +30,7 @@ public class UserClient {
   }
 
   public UserClient(
-      @Value("${services.user.base-url:http://localhost:8082}") String baseUrl,
+      @Value("${services.user.base-url:http://localhost:8084}") String baseUrl,
       @Value("${internal.secret:}") String internalSecret) {
     this.http = RestClient.builder().baseUrl(baseUrl).build();
     this.internalSecret = internalSecret;
@@ -40,10 +40,10 @@ public class UserClient {
   @PostConstruct
   void checkConfig() {
     if (internalSecret == null || internalSecret.isBlank()) {
-      throw new IllegalStateException("""
-        internal.secret NÃO configurado no auth-service.
-        Defina em application.yml (internal.secret) ou via env INTERNAL_API_SECRET.
-        """);
+      throw new IllegalStateException(
+        "internal.secret NÃO configurado no auth-service. " +
+        "Defina em application.yml (internal.secret) ou via env INTERNAL_API_SECRET."
+        );
     }
     System.out.println("[UserClient] baseUrl=" + baseUrl + "  secret? " + (internalSecret.isBlank() ? "NÃO" : "OK"));
   }

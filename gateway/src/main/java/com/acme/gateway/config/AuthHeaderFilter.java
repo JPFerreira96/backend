@@ -15,17 +15,18 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+        String path = request.getPath().value();
+        String method = request.getMethod().toString();
         
-        // Log da requisição para debug
-        System.out.println("🔗 Gateway - Request: " + request.getMethod() + " " + request.getPath());
-        System.out.println("🔗 Gateway - Headers: " + request.getHeaders());
+        // Log simples de requisições
+        System.out.println("🌐 Gateway - " + method + " " + path);
         
-        // Verifica se tem Authorization header
+        // Headers de autenticação
         String authHeader = request.getHeaders().getFirst("Authorization");
         if (authHeader != null) {
-            System.out.println("🔗 Gateway - Authorization header found: " + authHeader.substring(0, Math.min(20, authHeader.length())) + "...");
+            System.out.println("� Token presente: " + authHeader.substring(0, Math.min(20, authHeader.length())) + "...");
         } else {
-            System.out.println("🔗 Gateway - No Authorization header found");
+            System.out.println("⚠️  Sem token de autenticação");
         }
         
         return chain.filter(exchange);
@@ -33,6 +34,6 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -1; // Execute before other filters
+        return -1;
     }
 }

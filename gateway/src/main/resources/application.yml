@@ -4,28 +4,46 @@ server:
 spring:
   main:
     web-application-type: reactive
-
-spring.cloud.gateway:
-  default-filters:
-    - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
-    - RemoveRequestHeader=Cookie
-  routes:
-    - id: auth
-      uri: http://localhost:8081
-      predicates: [ Path=/api/auth/** ]
-    - id: users
-      uri: http://localhost:8082
-      predicates: [ Path=/api/users/**, Path=/api/internal/users/** ]
-    - id: cards
-      uri: http://localhost:8083
-      predicates: [ Path=/api/cards/** ]
-
-  globalcors:
-    corsConfigurations:
-      '[/**]':
-        allowedOrigins: "http://localhost:4200"
-        allowedMethods: "*"
-        allowedHeaders: "*"
-        allowCredentials: true
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+        - RemoveRequestHeader=Cookie
+      routes:
+        - id: auth
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/auth/**
+        - id: users
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/users/**
+        - id: users-internal
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/internal/users/**
+        - id: cards
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/cards/**
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - http://localhost:4200
+              - http://localhost:4201
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            exposedHeaders:
+              - Authorization
+            allowCredentials: true
 
 management.endpoints.web.exposure.include: health,info
