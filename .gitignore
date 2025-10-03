@@ -1,33 +1,110 @@
-.env
+# =========================
+# 1) Variáveis de ambiente (mantém .env.example)
+# =========================
+# Raiz
 /.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
 /.env.local
 /.env.development.local
 /.env.test.local
 /.env.production.local
 /.env.*.local
-node_modules
-.DS_Store
-dist
-/build
-coverage
+
+# Em qualquer pasta
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Permitir exemplos
+!.env.example
+!**/.env.example
+
+# =========================
+# 2) Node/Frontend (build e caches)
+# =========================
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Logs de package managers
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-.vscode
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+
+# =========================
+# 3) Java/Maven (artefatos de build)
+# =========================
+**/target/
+**/build/
+**/maven-status/
+**/maven-archiver/
+
+# JAR/WAR/EAR geralmente não devem ser versionados
+*.jar
+*.war
+*.ear
+# classes compiladas e logs
+*.class
 *.log
-*.tsbuildinfo
+
+# =========================
+# 4) Maven Wrapper (MANTER no repo)
+# =========================
+!.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+!mvnw
+!mvnw.cmd
+
+# =========================
+# 5) IDEs/Editor
+# =========================
+# VSCode
+.vscode/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# =========================
+# 6) SO / Arquivos temporários
+# =========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux / swap de editores
+*~
+*.swp
+*.swo
+
+# =========================
+# 7) Arquivos temporários, backups e dumps
+# =========================
 *.rpt
 *.rpt.*
 *.local
@@ -41,6 +118,8 @@ pnpm-debug.log*
 *.pid
 *.seed
 *.pid.lock
+
+# Arquivos compactados/binaries que não deveriam ir pro repo
 *.gz
 *.zip
 *.tar
@@ -48,37 +127,16 @@ pnpm-debug.log*
 *.7z
 *.exe
 *.dll
-*.class
-*.jar
-*.war
-*.ear
-*.iml
 
-# Scripts de desenvolvimento local (não devem ir para produção)
-*.bat
-*.cmd
-*.sh
-
-# Arquivos SQL temporários e dumps
-*.sql.backup
-*.sql.bak
-dump*.sql
-backup*.sql
-
-# Diretórios target do Maven (já deveriam estar ignorados)
-target/
-*/target/
-
-# Logs específicos do Spring Boot
+# =========================
+# 8) Logs específicos de apps
+# =========================
 spring.log
 application.log
 
-# Arquivos de configuração IDE específicos
-.vscode/
-.idea/
-*.iws
-*.ipr
-
-# Arquivos temporários do sistema
-Thumbs.db
-Desktop.ini
+# =========================
+# 9) Scripts locais (opcional, EVITE ignorar globalmente)
+# =========================
+# Em vez de ignorar *.sh/.bat global (perigoso), limite a uma pasta local:
+# scripts/local/ só existe no dev
+scripts/local/

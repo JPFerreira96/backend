@@ -120,6 +120,33 @@ public class CardClient {
             throw new RuntimeException("Erro ao alterar status do cartão: " + e.getMessage());
         }
     }
+
+   public CardSummary updateCard(UUID userId, UUID cardId, String nome, Boolean status) {
+    try {
+        var req = new UpdateCardRequest(nome, status);
+
+        return restClient.put()
+            .uri("/internal/cards/{cardId}", cardId)
+            .header("X-Internal-Secret", internalSecret)
+            .header("X-User-Id", userId.toString())
+            .body(req)
+            .retrieve()
+            .body(CardSummary.class);
+    } catch (RestClientException e) {
+        log.error("Erro ao atualizar cartão {} do usuário {}: {}", cardId, userId, e.getMessage());
+        throw new RuntimeException("Erro ao atualizar cartão: " + e.getMessage());
+    }
+}
+
+static class UpdateCardRequest {
+    public String nome;
+    public Boolean status;
+    UpdateCardRequest() {}
+    UpdateCardRequest(String nome, Boolean status) {
+        this.nome = nome;
+        this.status = status;
+    }
+}
     
     /**
      * DTO para criação de cartão

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.acme.user.service.CardClient;
 import com.acme.user.service.UserService;
 import com.acme.user.web.dto.UserDTOs.AddCardToUserRequest;
 import com.acme.user.web.dto.UserDTOs.CardSummary;
@@ -42,10 +43,17 @@ import jakarta.validation.Valid;
 public class UserController {
     
     private final UserService userService;
+    private final CardClient cardClient;
     
-    public UserController(UserService userService) {
+    public UserController(UserService userService, CardClient cardClient) {
         this.userService = userService;
+        this.cardClient = cardClient;
     }
+
+    public static class UpdateUserCardRequest {
+    public String nome;     // opcional
+    public Boolean status;  // opcional
+  }
 
     // === OPERAÇÕES CRUD DE USUÁRIOS ===
 
@@ -92,6 +100,29 @@ public class UserController {
         userService.changePassword(userId, request, userId, true);
         return ResponseEntity.noContent().build();
     }
+
+ @PutMapping("/{userId}/cards/{cardId}")
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
+  public ResponseEntity<CardSummary> updateUserCard(
+      @PathVariable UUID userId,
+      @PathVariable UUID cardId,
+      @RequestBody UpdateUserCardRequest req,
+      Authentication authentication) {
+
+    UUID authUserId = UUID.fromString(authentication.getName());
+    boolean isAdmin = authentication.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .anyMatch("ROLE_ADMIN"::equals);
+
+    if (!isAdmin && !authUserId.equals(userId)) {
+      // Se o IDE reclamar do tipo, use a forma tipada abaixo:
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).<CardSummary>build();
+    }
+
+    var updated = cardClient.updateCard(userId, cardId, req.nome, req.status);
+    return ResponseEntity.ok(updated);
+  }
+
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
