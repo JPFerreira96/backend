@@ -5,7 +5,6 @@ com\acme\card\web\dto\CardDTOs$UpdateCardRequest.class
 com\acme\card\repository\CardRepository.class
 com\acme\card\web\CardMapper.class
 com\acme\card\config\SecurityConfig.class
-com\acme\card\web\CardController.class
 com\acme\card\web\dto\CardDTOs$AddCardRequest.class
 com\acme\card\web\DevController.class
 com\acme\card\service\CardService.class

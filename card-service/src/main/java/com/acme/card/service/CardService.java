@@ -261,4 +261,6 @@ public class CardService {
         log.info("Cartão criado via acesso interno: {} para usuário: {}", savedCard.getId(), request.userId);
         return CardMapper.toResponse(savedCard);
     }
+
+    
 }

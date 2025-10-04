@@ -18,12 +18,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.acme.card.domain.TipoCartao;
 import com.acme.card.service.CardService;
+import com.acme.card.web.dto.CardDTOs;
 import com.acme.card.web.dto.CardDTOs.AddCardRequest;
 import com.acme.card.web.dto.CardDTOs.CardResponse;
 import com.acme.card.web.dto.CardDTOs.CreateCardRequest;
 import com.acme.card.web.dto.CardDTOs.ToggleStatusRequest;
 import com.acme.card.web.dto.CardDTOs.UpdateCardRequest;
+import com.acme.card.web.dto.RequestCardDTOs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -40,7 +43,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/cards")
 @Tag(name = "Cards", description = "API para gerenciamento de cartões de ônibus")
 public class CardController {
-    
+
     private final CardService cardService;
 
     public CardController(CardService cardService) {
@@ -74,8 +77,8 @@ public class CardController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Busca cartão por ID", description = "Retorna os dados de um cartão específico")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Cartão encontrado"),
-        @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
+            @ApiResponse(responseCode = "200", description = "Cartão encontrado"),
+            @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
     })
     public CardResponse getCardById(
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId) {
@@ -86,37 +89,66 @@ public class CardController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Cria um novo cartão", description = "Cria um novo cartão no sistema (apenas ADMIN)")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Cartão criado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "409", description = "Cartão já existe para este usuário")
+            @ApiResponse(responseCode = "201", description = "Cartão criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "409", description = "Cartão já existe para este usuário")
     })
     public ResponseEntity<CardResponse> createCard(
-            @Parameter(description = "Dados do cartão a ser criado") 
-            @Valid @RequestBody CreateCardRequest request) {
-        
+            @Parameter(description = "Dados do cartão a ser criado") @Valid @RequestBody CreateCardRequest request) {
+
         CardResponse card = cardService.createCard(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
+    }
+
+    @PostMapping("/request")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    public ResponseEntity<CardResponse> requestCard(
+            @RequestBody RequestCardDTOs body, Authentication auth) {
+
+        UUID authUserId = UUID.fromString(auth.getName());
+
+        // Converte String -> enum
+        var tipo = (body.type == null)
+                ? TipoCartao.COMUM
+                : TipoCartao.valueOf(body.type.trim().toUpperCase());
+
+        var req = new CardDTOs.AddCardRequest();
+        req.numeroCartao = gerarNumeroCartao();
+        req.nome = "Cartão " + tipo.name();
+        req.tipoCartao = tipo;
+
+        var card = cardService.addCardToUser(authUserId, req, authUserId, false);
+        return ResponseEntity.status(HttpStatus.CREATED).body(card);
+    }
+
+    // Gerar número de cartão aleatório
+    private String gerarNumeroCartao() {
+        var r = new java.util.Random();
+        int bloco1 = 10 + r.nextInt(89);
+        int bloco2 = 1_000_0000 + r.nextInt(9_000_0000);
+        int dv = r.nextInt(10);
+        return String.format("90.%02d.%08d-%d", bloco1, bloco2, dv);
     }
 
     @PutMapping("/{cardId}")
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Atualiza um cartão", description = "Atualiza os dados de um cartão existente")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Cartão atualizado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
+            @ApiResponse(responseCode = "200", description = "Cartão atualizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
     })
     public CardResponse updateCard(
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId,
             @Parameter(description = "Dados a serem atualizados") @Valid @RequestBody UpdateCardRequest request,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         return cardService.updateCard(cardId, request, authUserId, isAdmin);
     }
 
@@ -124,19 +156,19 @@ public class CardController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Remove um cartão", description = "Remove um cartão do sistema")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Cartão removido com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
+            @ApiResponse(responseCode = "204", description = "Cartão removido com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
     })
     public ResponseEntity<Void> deleteCard(
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         cardService.removeCard(cardId, authUserId, isAdmin);
         return ResponseEntity.noContent().build();
     }
@@ -147,18 +179,18 @@ public class CardController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Lista cartões de um usuário", description = "Retorna todos os cartões de um usuário específico")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Lista de cartões retornada"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado")
+            @ApiResponse(responseCode = "200", description = "Lista de cartões retornada"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado")
     })
     public List<CardResponse> getUserCards(
             @Parameter(description = "ID do usuário") @PathVariable UUID userId,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         return cardService.getUserCards(userId, authUserId, isAdmin);
     }
 
@@ -166,21 +198,21 @@ public class CardController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Adiciona cartão a um usuário", description = "Adiciona um novo cartão a um usuário específico")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Cartão adicionado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "409", description = "Cartão já existe para este usuário")
+            @ApiResponse(responseCode = "201", description = "Cartão adicionado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "409", description = "Cartão já existe para este usuário")
     })
     public ResponseEntity<CardResponse> addCardToUser(
             @Parameter(description = "ID do usuário") @PathVariable UUID userId,
             @Parameter(description = "Dados do cartão") @Valid @RequestBody AddCardRequest request,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         CardResponse card = cardService.addCardToUser(userId, request, authUserId, isAdmin);
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
     }
@@ -189,20 +221,20 @@ public class CardController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Remove cartão de um usuário", description = "Remove um cartão específico de um usuário")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Cartão removido com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
+            @ApiResponse(responseCode = "204", description = "Cartão removido com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
     })
     public ResponseEntity<Void> removeCardFromUser(
             @Parameter(description = "ID do usuário") @PathVariable UUID userId,
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         cardService.removeCardFromUser(userId, cardId, authUserId, isAdmin);
         return ResponseEntity.noContent().build();
     }
@@ -213,19 +245,19 @@ public class CardController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Ativa um cartão", description = "Ativa um cartão específico")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Cartão ativado com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
+            @ApiResponse(responseCode = "200", description = "Cartão ativado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
     })
     public CardResponse activateCard(
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         return cardService.activateCard(cardId, authUserId, isAdmin);
     }
 
@@ -233,19 +265,19 @@ public class CardController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Desativa um cartão", description = "Desativa um cartão específico")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Cartão desativado com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
+            @ApiResponse(responseCode = "200", description = "Cartão desativado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
     })
     public CardResponse deactivateCard(
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         return cardService.deactivateCard(cardId, authUserId, isAdmin);
     }
 
@@ -253,20 +285,20 @@ public class CardController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Alterna status do cartão", description = "Ativa ou desativa um cartão")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Status alterado com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
+            @ApiResponse(responseCode = "200", description = "Status alterado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "404", description = "Cartão não encontrado")
     })
     public CardResponse toggleCardStatus(
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId,
             @Parameter(description = "Novo status") @RequestBody ToggleStatusRequest request,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         return cardService.toggleCardStatus(cardId, request.status, authUserId, isAdmin);
     }
 

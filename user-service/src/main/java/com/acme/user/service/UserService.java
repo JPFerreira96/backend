@@ -27,13 +27,19 @@ import com.acme.user.web.dto.UserDTOs.UserResponse;
  */
 @Service
 public class UserService {
-    
+
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
-    
+
     private final UserRepository repository;
     private final CardClient cardClient;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    
+
+    private String normalizeRole(String role) {
+        if (role == null || role.isBlank())
+            return "ROLE_USER";
+        return role.startsWith("ROLE_") ? role : "ROLE_" + role.toUpperCase();
+    }
+
     public UserService(UserRepository repository, CardClient cardClient) {
         this.repository = repository;
         this.cardClient = cardClient;
@@ -45,8 +51,8 @@ public class UserService {
     public List<UserResponse> getAllUsers() {
         log.debug("Listando todos os usuários");
         return repository.findAll().stream()
-            .map(this::mapToResponseWithCards)
-            .toList();
+                .map(this::mapToResponseWithCards)
+                .toList();
     }
 
     /**
@@ -55,7 +61,7 @@ public class UserService {
     public UserResponse getUserById(UUID id) {
         log.debug("Buscando usuário por ID: {}", id);
         User user = repository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
+                .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
         return mapToResponseWithCards(user);
     }
 
@@ -65,28 +71,27 @@ public class UserService {
     @Transactional
     public UserResponse createUser(CreateUserRequest request, boolean isAdmin) {
         log.debug("Criando novo usuário: {}", request.email);
-        
+
         // Validação de role
         if (!isAdmin && request.role != null) {
             throw new AccessDeniedException("Role só pode ser definido por ADMIN");
         }
-        
+
         // Validação de email único
         repository.findByEmail(request.email).ifPresent(u -> {
             throw new IllegalArgumentException("Email já está em uso");
         });
-        
+
         // Criação do usuário
         User user = User.create(
-            request.name,
-            request.email,
-            encoder.encode(request.password),
-            isAdmin && request.role != null ? request.role : "ROLE_USER"
-        );
-        
+                request.name,
+                request.email,
+                encoder.encode(request.password), // <-- HASH AQUI
+                isAdmin && request.role != null ? normalizeRole(request.role) : "ROLE_USER");
+
         User savedUser = repository.save(user);
         log.info("Usuário criado com sucesso: {} (ID: {})", savedUser.getEmail(), savedUser.getId());
-        
+
         return mapToResponseWithCards(savedUser);
     }
 
@@ -96,28 +101,28 @@ public class UserService {
     @Transactional
     public UserResponse updateUser(UUID id, UpdateUserRequest request, UUID authUserId, boolean isAdmin) {
         log.debug("Atualizando usuário: {}", id);
-        
+
         User user = repository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
-        
+                .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
+
         // Verificação de autorização
         if (!isAdmin && !user.getId().equals(authUserId)) {
             throw new AccessDeniedException("Não autorizado a alterar este usuário");
         }
-        
+
         // Validação de email único (se alterado)
         if (request.email != null && !request.email.equals(user.getEmail())) {
             repository.findByEmail(request.email).ifPresent(u -> {
                 throw new IllegalArgumentException("Email já está em uso");
             });
         }
-        
+
         // Atualização dos campos
         user.rename(request.name);
         if (request.email != null) {
             user.changeEmail(request.email);
         }
-        
+
         log.info("Usuário atualizado com sucesso: {}", id);
         return mapToResponseWithCards(user);
     }
@@ -128,11 +133,11 @@ public class UserService {
     @Transactional
     public void deleteUser(UUID id) {
         log.debug("Removendo usuário: {}", id);
-        
+
         if (!repository.existsById(id)) {
             throw new NoSuchElementException("Usuário não encontrado");
         }
-        
+
         repository.deleteById(id);
         log.info("Usuário removido com sucesso: {}", id);
     }
@@ -143,20 +148,20 @@ public class UserService {
     @Transactional
     public void changePassword(UUID id, ChangePasswordRequest request, UUID authUserId, boolean isAdmin) {
         log.debug("Alterando senha do usuário: {}", id);
-        
+
         User user = repository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
-        
+                .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
+
         // Verificação de autorização
         if (!isAdmin && !user.getId().equals(authUserId)) {
             throw new AccessDeniedException("Não autorizado a alterar senha deste usuário");
         }
-        
+
         // Verificação da senha atual (apenas para o próprio usuário)
         if (!isAdmin && !encoder.matches(request.currentPassword, user.getPasswordHash())) {
             throw new IllegalArgumentException("Senha atual incorreta");
         }
-        
+
         user.changePassword(encoder.encode(request.newPassword));
         log.info("Senha alterada com sucesso para usuário: {}", id);
     }
@@ -169,20 +174,19 @@ public class UserService {
     @Transactional
     public CardSummary addCardToUser(UUID userId, AddCardToUserRequest request) {
         log.debug("Adicionando cartão ao usuário: {}", userId);
-        
+
         // Verifica se o usuário existe
         if (!repository.existsById(userId)) {
             throw new NoSuchElementException("Usuário não encontrado");
         }
-        
+
         // Cria o cartão via Card Service
         CardSummary card = cardClient.createCard(
-            userId,
-            request.numeroCartao,
-            request.nome,
-            request.tipoCartao.name()
-        );
-        
+                userId,
+                request.numeroCartao,
+                request.nome,
+                request.tipoCartao.name());
+
         log.info("Cartão adicionado ao usuário {}: {}", userId, card.numeroCartao);
         return card;
     }
@@ -193,12 +197,12 @@ public class UserService {
     @Transactional
     public void removeCardFromUser(UUID userId, UUID cardId) {
         log.debug("Removendo cartão {} do usuário: {}", cardId, userId);
-        
+
         // Verifica se o usuário existe
         if (!repository.existsById(userId)) {
             throw new NoSuchElementException("Usuário não encontrado");
         }
-        
+
         cardClient.removeCard(userId, cardId);
         log.info("Cartão {} removido do usuário: {}", cardId, userId);
     }
@@ -209,12 +213,12 @@ public class UserService {
     @Transactional
     public void toggleCardStatus(UUID userId, UUID cardId, boolean activate) {
         log.debug("{} cartão {} do usuário: {}", activate ? "Ativando" : "Desativando", cardId, userId);
-        
+
         // Verifica se o usuário existe
         if (!repository.existsById(userId)) {
             throw new NoSuchElementException("Usuário não encontrado");
         }
-        
+
         cardClient.toggleCardStatus(userId, cardId, activate);
         log.info("Cartão {} {} para usuário: {}", cardId, activate ? "ativado" : "desativado", userId);
     }
@@ -234,32 +238,41 @@ public class UserService {
     @Transactional
     public User internalCreateUser(CreateUserRequest request) {
         log.debug("Criando usuário interno: {}", request.email);
-        
+
         // Validação de email único
         repository.findByEmail(request.email).ifPresent(u -> {
             throw new IllegalArgumentException("Email já está em uso");
         });
-        
+
         // Criação do usuário
         User user = User.create(
-            request.name,
-            request.email,
-            encoder.encode(request.password),
-            request.role != null ? request.role : "ROLE_USER"
-        );
-        
+                request.name,
+                request.email,
+                encoder.encode(request.password),
+                normalizeRole(request.role));
+
         User savedUser = repository.save(user);
         log.info("Usuário interno criado: {} (ID: {})", savedUser.getEmail(), savedUser.getId());
-        
+
         return savedUser;
     }
+
+        /**
+         * Verifica credenciais internamente (sem expor hash)
+         */
+        public User internalVerifyCredentials(String email, String rawPassword) {
+            var user = repository.findByEmail(email).orElse(null);
+            if (user == null) return null;
+            if (!encoder.matches(rawPassword, user.getPasswordHash())) return null;
+            return user;
+        }
 
     /**
      * Mapeia User para UserResponse incluindo cartões
      */
     private UserResponse mapToResponseWithCards(User user) {
         UserResponse response = UserMapper.toResponse(user);
-        
+
         // Busca cartões do usuário
         try {
             response.cards = cardClient.getUserCards(user.getId());
@@ -267,7 +280,7 @@ public class UserService {
             log.warn("Erro ao buscar cartões do usuário {}: {}", user.getId(), e.getMessage());
             response.cards = List.of(); // Lista vazia em caso de erro
         }
-        
+
         return response;
     }
 }
