@@ -108,10 +108,11 @@ public class SecurityConfig {
     config.addAllowedOriginPattern("http://example.com");
 
     // métodos/headers
-    config.addAllowedMethod("GET");
-    config.addAllowedMethod("POST");
-    config.addAllowedMethod("PUT");
-    config.addAllowedMethod("DELETE");
+  config.addAllowedMethod("GET");
+  config.addAllowedMethod("POST");
+  config.addAllowedMethod("PUT");
+  config.addAllowedMethod("DELETE");
+  config.addAllowedMethod("PATCH");
     config.addAllowedHeader("*");
     // se a UI for chamar internos via browser algum dia:
     config.addAllowedHeader("X-Internal-Secret");

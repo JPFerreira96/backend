@@ -1,6 +1,7 @@
 package com.acme.gateway.controller;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,15 +64,17 @@ public class UserProxyController {
         System.out.println("🎯 UserProxyController - PUT /me chamado");
         System.out.println("🔑 Authorization: " + (authHeader != null ? "PRESENTE" : "AUSENTE"));
         
-        WebClient.RequestHeadersSpec<?> request = webClient.put()
+        WebClient.RequestBodySpec request = webClient.put()
             .uri("/api/users/me")
-            .bodyValue(body);
+            .contentType(MediaType.APPLICATION_JSON);
+
+        WebClient.RequestHeadersSpec<?> headersSpec = request.bodyValue(body);
             
         if (authHeader != null) {
-            request = request.header("Authorization", authHeader);
+            headersSpec = headersSpec.header("Authorization", authHeader);
         }
         
-        return request
+        return headersSpec
             .retrieve()
             .toEntity(String.class)
             .doOnSuccess(response -> System.out.println("✅ User Service respondeu: " + response.getStatusCode()))
@@ -91,15 +94,17 @@ public class UserProxyController {
         System.out.println("🎯 UserProxyController - PUT /me/password chamado");
         System.out.println("🔑 Authorization: " + (authHeader != null ? "PRESENTE" : "AUSENTE"));
         
-        WebClient.RequestHeadersSpec<?> request = webClient.put()
+        WebClient.RequestBodySpec request = webClient.put()
             .uri("/api/users/me/password")
-            .bodyValue(body);
+            .contentType(MediaType.APPLICATION_JSON);
+
+        WebClient.RequestHeadersSpec<?> headersSpec = request.bodyValue(body);
             
         if (authHeader != null) {
-            request = request.header("Authorization", authHeader);
+            headersSpec = headersSpec.header("Authorization", authHeader);
         }
         
-        return request
+        return headersSpec
             .retrieve()
             .toEntity(String.class)
             .doOnSuccess(response -> System.out.println("✅ User Service respondeu: " + response.getStatusCode()))

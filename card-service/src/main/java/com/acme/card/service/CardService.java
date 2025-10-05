@@ -28,6 +28,7 @@ public class CardService {
     private static final Logger log = LoggerFactory.getLogger(CardService.class);
     
     private final CardRepository repository;
+    private final java.util.Random random = new java.util.Random();
 
     public CardService(CardRepository repository) {
         this.repository = repository;
@@ -75,13 +76,21 @@ public class CardService {
     public CardResponse createCard(CreateCardRequest request) {
         log.debug("Criando novo cartão para usuário: {}", request.userId);
         
-        // Validação: usuário não pode ter cartão duplicado
-        repository.findByUserIdAndNumeroCartao(request.userId, request.numeroCartao)
+        String numeroCartao = request.numeroCartao;
+        if (numeroCartao == null || numeroCartao.isBlank()) {
+            numeroCartao = gerarNumeroCartao();
+        }
+
+        repository.findByUserIdAndNumeroCartao(request.userId, numeroCartao)
             .ifPresent(card -> {
                 throw new IllegalArgumentException("Usuário já possui cartão com este número");
             });
         
-        Card card = Card.create(request.numeroCartao, request.nome, request.tipoCartao, request.userId);
+        String nomeCartao = (request.nome != null && !request.nome.isBlank())
+                ? request.nome
+                : "Cartão " + request.tipoCartao.name();
+
+        Card card = Card.create(numeroCartao, nomeCartao, request.tipoCartao, request.userId);
         Card savedCard = repository.save(card);
         
         log.info("Cartão criado com sucesso: {} para usuário: {}", savedCard.getId(), request.userId);
@@ -99,13 +108,20 @@ public class CardService {
             throw new AccessDeniedException("Não autorizado a adicionar cartão para este usuário");
         }
         
-        // Validação: usuário não pode ter cartão duplicado
-        repository.findByUserIdAndNumeroCartao(userId, request.numeroCartao)
+        String numeroCartao = (request.numeroCartao == null || request.numeroCartao.isBlank())
+                ? gerarNumeroCartao()
+                : request.numeroCartao;
+
+        repository.findByUserIdAndNumeroCartao(userId, numeroCartao)
             .ifPresent(card -> {
                 throw new IllegalArgumentException("Usuário já possui cartão com este número");
             });
-        
-        Card card = Card.create(request.numeroCartao, request.nome, request.tipoCartao, userId);
+
+        String nomeCartao = (request.nome != null && !request.nome.isBlank())
+                ? request.nome
+                : "Cartão " + request.tipoCartao.name();
+
+        Card card = Card.create(numeroCartao, nomeCartao, request.tipoCartao, userId);
         Card savedCard = repository.save(card);
         
         log.info("Cartão adicionado com sucesso: {} para usuário: {}", savedCard.getId(), userId);
@@ -250,16 +266,32 @@ public class CardService {
     public CardResponse internalCreateCard(CreateCardRequest request) {
         log.debug("Acesso interno - criando cartão para usuário: {}", request.userId);
         
-        repository.findByUserIdAndNumeroCartao(request.userId, request.numeroCartao)
+        String numeroCartao = (request.numeroCartao == null || request.numeroCartao.isBlank())
+            ? gerarNumeroCartao()
+            : request.numeroCartao;
+
+        repository.findByUserIdAndNumeroCartao(request.userId, numeroCartao)
             .ifPresent(card -> {
                 throw new IllegalArgumentException("Usuário já possui cartão com este número");
             });
         
-        Card card = Card.create(request.numeroCartao, request.nome, request.tipoCartao, request.userId);
+        String nomeCartao = (request.nome != null && !request.nome.isBlank())
+            ? request.nome
+            : "Cartão " + request.tipoCartao.name();
+
+        Card card = Card.create(numeroCartao, nomeCartao, request.tipoCartao, request.userId);
         Card savedCard = repository.save(card);
         
         log.info("Cartão criado via acesso interno: {} para usuário: {}", savedCard.getId(), request.userId);
         return CardMapper.toResponse(savedCard);
+    }
+
+    private String gerarNumeroCartao() {
+        int prefixo = 90;
+        int agencia = 10 + random.nextInt(90); // garante duas casas entre 10 e 99
+        int corpo = random.nextInt(100_000_000); // oito dígitos
+        int digito = random.nextInt(10);
+        return String.format("%02d.%02d.%08d-%d", prefixo, agencia, corpo, digito);
     }
 
     

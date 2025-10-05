@@ -8,17 +8,15 @@ import com.acme.card.domain.TipoCartao;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class CardDTOs {
 
   public static class CreateCardRequest {
-    @NotBlank
-    @Pattern(regexp="\\d{13,19}", message="numeroCartao deve ter de 13 a 19 dígitos")
+    @Size(min=13, max=30)
     public String numeroCartao;
 
-    @NotBlank @Size(max=120)
+    @Size(max=120)
     public String nome;
 
     @NotNull

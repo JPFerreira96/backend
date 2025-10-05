@@ -110,17 +110,25 @@ public class UserService {
             throw new AccessDeniedException("Não autorizado a alterar este usuário");
         }
 
-        // Validação de email único (se alterado)
-        if (request.email != null && !request.email.equals(user.getEmail())) {
-            repository.findByEmail(request.email).ifPresent(u -> {
-                throw new IllegalArgumentException("Email já está em uso");
-            });
+        boolean hasName = request.name != null && !request.name.isBlank();
+        boolean hasEmail = request.email != null && !request.email.isBlank();
+
+        if (!hasName && !hasEmail) {
+            throw new IllegalArgumentException("Informe ao menos nome ou email para atualizar");
         }
 
-        // Atualização dos campos
-        user.rename(request.name);
-        if (request.email != null) {
-            user.changeEmail(request.email);
+        if (hasEmail) {
+            String newEmail = request.email.trim();
+            if (!newEmail.equals(user.getEmail())) {
+                repository.findByEmail(newEmail).ifPresent(u -> {
+                    throw new IllegalArgumentException("Email já está em uso");
+                });
+            }
+            user.changeEmail(newEmail);
+        }
+
+        if (hasName) {
+            user.rename(request.name.trim());
         }
 
         log.info("Usuário atualizado com sucesso: {}", id);
@@ -132,10 +140,19 @@ public class UserService {
      */
     @Transactional
     public void deleteUser(UUID id) {
+        deleteUser(id, id, true);
+    }
+
+    @Transactional
+    public void deleteUser(UUID id, UUID authUserId, boolean isAdmin) {
         log.debug("Removendo usuário: {}", id);
 
         if (!repository.existsById(id)) {
             throw new NoSuchElementException("Usuário não encontrado");
+        }
+
+        if (!isAdmin && !id.equals(authUserId)) {
+            throw new AccessDeniedException("Não autorizado a remover este usuário");
         }
 
         repository.deleteById(id);

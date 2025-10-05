@@ -183,16 +183,40 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Remove um usuário", description = "Remove um usuário do sistema (apenas ADMIN)")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @Operation(summary = "Remove um usuário", description = "Remove um usuário do sistema")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Usuário removido com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Não autorizado"),
         @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<Void> deleteUser(
-            @Parameter(description = "ID do usuário") @PathVariable UUID id) {
+            @Parameter(description = "ID do usuário") @PathVariable UUID id,
+            Authentication authentication) {
         
-        userService.deleteUser(id);
+        UUID authUserId = UUID.fromString(authentication.getName());
+        boolean isAdmin = authentication.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !authUserId.equals(id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        userService.deleteUser(id, authUserId, isAdmin);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/me")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @Operation(summary = "Remove conta do usuário logado", description = "Permite ao usuário remover a própria conta")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Conta removida com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    public ResponseEntity<Void> deleteMyAccount(Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        userService.deleteUser(userId, userId, false);
         return ResponseEntity.noContent().build();
     }
 

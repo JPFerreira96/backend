@@ -6,7 +6,6 @@ import java.util.UUID;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class UserDTOs {
@@ -46,7 +45,6 @@ public class UserDTOs {
     }
     
     public static class UpdateUserRequest {
-        @NotBlank(message = "Nome é obrigatório")
         @Size(max = 120, message = "Nome deve ter no máximo 120 caracteres")
         public String name;
         
@@ -83,11 +81,9 @@ public class UserDTOs {
     }
     
     public static class AddCardToUserRequest {
-        @NotBlank(message = "Número do cartão é obrigatório")
-        @Pattern(regexp = "\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}", message = "Número do cartão deve ter formato XXXX.XXXX.XXXX.XXXX")
+        @Size(max = 30, message = "Número do cartão deve ter no máximo 30 caracteres")
         public String numeroCartao;
         
-        @NotBlank(message = "Nome do cartão é obrigatório")
         @Size(max = 120, message = "Nome do cartão deve ter no máximo 120 caracteres")
         public String nome;
         

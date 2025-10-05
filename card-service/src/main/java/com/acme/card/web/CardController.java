@@ -112,10 +112,12 @@ public class CardController {
                 ? TipoCartao.COMUM
                 : TipoCartao.valueOf(body.type.trim().toUpperCase());
 
-        var req = new CardDTOs.AddCardRequest();
-        req.numeroCartao = gerarNumeroCartao();
-        req.nome = "Cartão " + tipo.name();
-        req.tipoCartao = tipo;
+                var req = new CardDTOs.AddCardRequest();
+                req.numeroCartao = gerarNumeroCartao();
+                req.nome = (body.name != null && !body.name.isBlank())
+                        ? body.name.trim()
+                        : "Cartão " + tipo.name();
+                req.tipoCartao = tipo;
 
         var card = cardService.addCardToUser(authUserId, req, authUserId, false);
         return ResponseEntity.status(HttpStatus.CREATED).body(card);

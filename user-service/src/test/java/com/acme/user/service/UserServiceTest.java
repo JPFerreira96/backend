@@ -1,8 +1,14 @@
 package com.acme.user.service;
 
-import com.acme.user.domain.User;
-import com.acme.user.repository.UserRepository;
-import com.acme.user.web.dto.UserDTOs.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,14 +18,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import com.acme.user.domain.User;
+import com.acme.user.repository.UserRepository;
+import com.acme.user.web.dto.UserDTOs.AddCardToUserRequest;
+import com.acme.user.web.dto.UserDTOs.CardSummary;
+import com.acme.user.web.dto.UserDTOs.ChangePasswordRequest;
+import com.acme.user.web.dto.UserDTOs.CreateUserRequest;
+import com.acme.user.web.dto.UserDTOs.TipoCartao;
+import com.acme.user.web.dto.UserDTOs.UpdateUserRequest;
+import com.acme.user.web.dto.UserDTOs.UserResponse;
 
 /**
  * Testes unitários para UserService
@@ -43,13 +50,9 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userId = UUID.randomUUID();
+        user = spy(User.create("João Silva", "joao@email.com", "hashedPassword", "ROLE_USER"));
+        userId = user.getId();
         authUserId = UUID.randomUUID();
-        
-        user = User.create("João Silva", "joao@email.com", "hashedPassword", "ROLE_USER");
-        // Simula que o user tem um ID (normalmente setado pelo JPA)
-        user = spy(user);
-        when(user.getId()).thenReturn(userId);
     }
 
     @Test
@@ -182,12 +185,47 @@ class UserServiceTest {
     }
 
     @Test
+    void updateUser_ShouldAllowAdminToChangeOnlyEmail() {
+        // Given
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.email = "admin.novo@email.com";
+
+        when(repository.findById(userId)).thenReturn(Optional.of(user));
+        when(repository.findByEmail("admin.novo@email.com")).thenReturn(Optional.empty());
+        when(cardClient.getUserCards(userId)).thenReturn(List.of());
+
+        // When
+        UserResponse result = userService.updateUser(userId, request, authUserId, true);
+
+        // Then
+        assertNotNull(result);
+        verify(repository).findById(userId);
+        verify(repository).findByEmail("admin.novo@email.com");
+        verify(user, never()).rename(anyString());
+        verify(user).changeEmail("admin.novo@email.com");
+    }
+
+    @Test
+    void updateUser_ShouldThrowException_WhenNoFieldsProvided() {
+        // Given
+        UpdateUserRequest request = new UpdateUserRequest();
+        when(repository.findById(userId)).thenReturn(Optional.of(user));
+
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () ->
+            userService.updateUser(userId, request, userId, false));
+        verify(repository).findById(userId);
+        verify(user, never()).rename(anyString());
+        verify(user, never()).changeEmail(anyString());
+    }
+
+    @Test
     void deleteUser_ShouldDeleteUser_WhenUserExists() {
         // Given
         when(repository.existsById(userId)).thenReturn(true);
 
         // When
-        userService.deleteUser(userId);
+        userService.deleteUser(userId, userId, false);
 
         // Then
         verify(repository).existsById(userId);
@@ -200,7 +238,20 @@ class UserServiceTest {
         when(repository.existsById(userId)).thenReturn(false);
 
         // When & Then
-        assertThrows(NoSuchElementException.class, () -> userService.deleteUser(userId));
+        assertThrows(NoSuchElementException.class, () -> userService.deleteUser(userId, userId, true));
+        verify(repository).existsById(userId);
+        verify(repository, never()).deleteById(any());
+    }
+
+    @Test
+    void deleteUser_ShouldThrowException_WhenNotAuthorized() {
+        // Given
+        when(repository.existsById(userId)).thenReturn(true);
+        UUID anotherUserId = UUID.randomUUID();
+
+        // When & Then
+        assertThrows(AccessDeniedException.class, () ->
+            userService.deleteUser(userId, anotherUserId, false));
         verify(repository).existsById(userId);
         verify(repository, never()).deleteById(any());
     }

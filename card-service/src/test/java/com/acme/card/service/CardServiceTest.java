@@ -43,15 +43,11 @@ class CardServiceTest {
 
     @BeforeEach
     void setUp() {
-        cardId = UUID.randomUUID();
-        userId = UUID.randomUUID();
         authUserId = UUID.randomUUID();
-        
-        card = Card.create("1234.5678.9012.3456", "Cartão Trabalho", TipoCartao.TRABALHADOR, userId);
-        // Simula que o card tem um ID (normalmente setado pelo JPA)
-        card = spy(card);
-        when(card.getId()).thenReturn(cardId);
-        when(card.getUserId()).thenReturn(userId);
+
+        card = Card.create("1234.5678.9012.3456", "Cartão Trabalho", TipoCartao.TRABALHADOR, UUID.randomUUID());
+        cardId = card.getId();
+        userId = card.getUserId();
     }
 
     @Test
