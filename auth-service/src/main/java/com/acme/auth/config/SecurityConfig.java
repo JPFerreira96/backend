@@ -21,7 +21,7 @@ public class SecurityConfig {
     http
       .csrf(csrf -> csrf.disable())
       .cors(cors -> {
-        cors.configurationSource(corsConfigurationSource());  // Configura CORS
+        cors.configurationSource(corsConfigurationSource());
       })
       .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
       .headers(h -> h
@@ -31,7 +31,7 @@ public class SecurityConfig {
       .authorizeHttpRequests(auth -> auth
         .requestMatchers("/swagger**", "/v3/api-docs/**", "/actuator/health").permitAll()
         .requestMatchers("/api/auth/**").permitAll()
-        .requestMatchers("/**").permitAll() // TEMPORÁRIO: Permitir tudo para debug
+        .requestMatchers("/**").permitAll()
         .anyRequest().authenticated()
       )
       .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class);
@@ -39,18 +39,17 @@ public class SecurityConfig {
     return http.build();
   }
 
-  // Configuração do CORS com as origens permitidas
   private UrlBasedCorsConfigurationSource corsConfigurationSource() {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
-    config.addAllowedOriginPattern("http://localhost:4200"); // Usando addAllowedOriginPattern
-    config.addAllowedOriginPattern("http://example.com");    // Usando addAllowedOriginPattern
+    config.addAllowedOriginPattern("http://localhost:4200");
+    config.addAllowedOriginPattern("http://example.com");
     config.addAllowedMethod("GET");
     config.addAllowedMethod("POST");
     config.addAllowedMethod("PUT");
     config.addAllowedMethod("DELETE");
-    config.addAllowedHeader("*"); // Permite qualquer cabeçalho
-    source.registerCorsConfiguration("/**", config); // Aplica as configurações de CORS a todas as URLs
+    config.addAllowedHeader("*");
+    source.registerCorsConfiguration("/**", config);
     return source;
   }
 }

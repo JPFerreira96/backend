@@ -10,7 +10,6 @@ import jakarta.persistence.Table;
 @Entity 
 @Table(
   name="users" 
-  // schema = "users"
   )
 
 public class User {

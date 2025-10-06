@@ -1,5 +1,3 @@
-// com.acme.card.web.dto.CardDTOs
-
 package com.acme.card.web.dto;
 
 import java.util.UUID;
@@ -29,25 +27,24 @@ public class CardDTOs {
   public static class UpdateCardRequest {
     @NotBlank @Size(max=120)
     public String nome;
-
-    public Boolean status; // opcional
+    public Boolean status;
   }
 
   public static class CardResponse {
     public UUID id;
-    public String numeroCartao;   // <-- STRING AQUI
+    public String numeroCartao;
     public String nome;
     public boolean status;
     public TipoCartao tipoCartao;
   }
 
   public static class AddCardRequest {
-    public String numeroCartao;   // <-- STRING
+    public String numeroCartao;
     public String nome;
     public TipoCartao tipoCartao;
   }
 
   public static class ToggleStatusRequest {
-    public boolean status; // <- o campo que o controller usa
+    public boolean status;
   }
 }

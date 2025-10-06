@@ -15,9 +15,6 @@ import org.springframework.web.client.RestClientException;
 
 import com.acme.user.web.dto.UserDTOs.CardSummary;
 
-/**
- * Client para comunicação com o Card Service
- */
 @Service
 public class CardClient {
     
@@ -36,9 +33,6 @@ public class CardClient {
         this.internalSecret = internalSecret;
     }
     
-    /**
-     * Busca todos os cartões de um usuário
-     */
     public List<CardSummary> getUserCards(UUID userId) {
         try {
             log.debug("Buscando cartões do usuário: {}", userId);
@@ -57,9 +51,6 @@ public class CardClient {
         }
     }
     
-    /**
-     * Cria um novo cartão para o usuário
-     */
     public CardSummary createCard(UUID userId, String numeroCartao, String nome, String tipoCartao) {
         try {
             log.debug("Criando cartão para usuário: {}", userId);
@@ -79,9 +70,6 @@ public class CardClient {
         }
     }
     
-    /**
-     * Remove um cartão do usuário
-     */
     public void removeCard(UUID userId, UUID cardId) {
         try {
             log.debug("Removendo cartão {} do usuário: {}", cardId, userId);
@@ -98,9 +86,6 @@ public class CardClient {
         }
     }
     
-    /**
-     * Ativa/Desativa um cartão
-     */
     public void toggleCardStatus(UUID userId, UUID cardId, boolean activate) {
         try {
             log.debug("{} cartão {} do usuário: {}", activate ? "Ativando" : "Desativando", cardId, userId);
@@ -138,19 +123,16 @@ public class CardClient {
     }
 }
 
-static class UpdateCardRequest {
-    public String nome;
-    public Boolean status;
-    UpdateCardRequest() {}
-    UpdateCardRequest(String nome, Boolean status) {
-        this.nome = nome;
-        this.status = status;
+    static class UpdateCardRequest {
+        public String nome;
+        public Boolean status;
+        UpdateCardRequest() {}
+        UpdateCardRequest(String nome, Boolean status) {
+            this.nome = nome;
+            this.status = status;
+        }
     }
-}
     
-    /**
-     * DTO para criação de cartão
-     */
     public static class CreateCardRequest {
         public UUID userId;
         public String numeroCartao;

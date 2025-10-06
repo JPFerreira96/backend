@@ -33,29 +33,23 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-/**
- * Controller REST para gerenciamento de usuários
- * Implementa todas as operações CRUD e gerenciamento de cartões
- */
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "Users", description = "API para gerenciamento de usuários")
 public class UserController {
-    
+
     private final UserService userService;
     private final CardClient cardClient;
-    
+
     public UserController(UserService userService, CardClient cardClient) {
         this.userService = userService;
         this.cardClient = cardClient;
     }
 
     public static class UpdateUserCardRequest {
-    public String nome;     // opcional
-    public Boolean status;  // opcional
-  }
-
-    // === OPERAÇÕES CRUD DE USUÁRIOS ===
+        public String nome;
+        public Boolean status;
+    }
 
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
@@ -70,16 +64,15 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Atualiza dados do usuário logado", description = "Permite ao usuário logado atualizar seus próprios dados")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Dados atualizados com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "409", description = "Email já está em uso")
+            @ApiResponse(responseCode = "200", description = "Dados atualizados com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "409", description = "Email já está em uso")
     })
     public UserResponse updateMyProfile(
             @Parameter(description = "Dados a serem atualizados") @Valid @RequestBody UpdateUserRequest request,
             Authentication authentication) {
-        
+
         UUID userId = UUID.fromString(authentication.getName());
-        // Usuário pode atualizar seus próprios dados, passa como admin=false mas autorizado
         return userService.updateUser(userId, request, userId, true);
     }
 
@@ -87,42 +80,40 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Altera senha do usuário logado", description = "Permite ao usuário logado alterar sua própria senha")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Senha alterada com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Senha atual incorreta ou dados inválidos"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "204", description = "Senha alterada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Senha atual incorreta ou dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<Void> changeMyPassword(
             @Parameter(description = "Dados para alteração de senha") @Valid @RequestBody ChangePasswordRequest request,
             Authentication authentication) {
-        
+
         UUID userId = UUID.fromString(authentication.getName());
-        // Usuário pode alterar sua própria senha
+
         userService.changePassword(userId, request, userId, true);
         return ResponseEntity.noContent().build();
     }
 
- @PutMapping("/{userId}/cards/{cardId}")
-  @PreAuthorize("hasAnyRole('ADMIN','USER')")
-  public ResponseEntity<CardSummary> updateUserCard(
-      @PathVariable UUID userId,
-      @PathVariable UUID cardId,
-      @RequestBody UpdateUserCardRequest req,
-      Authentication authentication) {
+    @PutMapping("/{userId}/cards/{cardId}")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    public ResponseEntity<CardSummary> updateUserCard(
+            @PathVariable UUID userId,
+            @PathVariable UUID cardId,
+            @RequestBody UpdateUserCardRequest req,
+            Authentication authentication) {
 
-    UUID authUserId = UUID.fromString(authentication.getName());
-    boolean isAdmin = authentication.getAuthorities().stream()
-        .map(GrantedAuthority::getAuthority)
-        .anyMatch("ROLE_ADMIN"::equals);
+        UUID authUserId = UUID.fromString(authentication.getName());
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ROLE_ADMIN"::equals);
 
-    if (!isAdmin && !authUserId.equals(userId)) {
-      // Se o IDE reclamar do tipo, use a forma tipada abaixo:
-      return ResponseEntity.status(HttpStatus.FORBIDDEN).<CardSummary>build();
+        if (!isAdmin && !authUserId.equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).<CardSummary>build();
+        }
+
+        var updated = cardClient.updateCard(userId, cardId, req.nome, req.status);
+        return ResponseEntity.ok(updated);
     }
-
-    var updated = cardClient.updateCard(userId, cardId, req.nome, req.status);
-    return ResponseEntity.ok(updated);
-  }
-
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
@@ -136,8 +127,8 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Busca usuário por ID", description = "Retorna os dados de um usuário específico")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public UserResponse getUserById(
             @Parameter(description = "ID do usuário") @PathVariable UUID id) {
@@ -148,14 +139,13 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Cria um novo usuário", description = "Cria um novo usuário no sistema (apenas ADMIN)")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "409", description = "Email já está em uso")
+            @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "409", description = "Email já está em uso")
     })
     public ResponseEntity<UserResponse> createUser(
-            @Parameter(description = "Dados do usuário a ser criado") 
-            @Valid @RequestBody CreateUserRequest request) {
-        
+            @Parameter(description = "Dados do usuário a ser criado") @Valid @RequestBody CreateUserRequest request) {
+
         UserResponse user = userService.createUser(request, true);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
@@ -164,21 +154,21 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Atualiza um usuário", description = "Atualiza os dados de um usuário existente")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public UserResponse updateUser(
             @Parameter(description = "ID do usuário") @PathVariable UUID id,
             @Parameter(description = "Dados a serem atualizados") @Valid @RequestBody UpdateUserRequest request,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         return userService.updateUser(id, request, authUserId, isAdmin);
     }
 
@@ -186,18 +176,18 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Remove um usuário", description = "Remove um usuário do sistema")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Usuário removido com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "204", description = "Usuário removido com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "ID do usuário") @PathVariable UUID id,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
 
         if (!isAdmin && !authUserId.equals(id)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -211,8 +201,8 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Remove conta do usuário logado", description = "Permite ao usuário remover a própria conta")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Conta removida com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "204", description = "Conta removida com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<Void> deleteMyAccount(Authentication authentication) {
         UUID userId = UUID.fromString(authentication.getName());
@@ -224,50 +214,47 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Altera senha do usuário", description = "Altera a senha de um usuário")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Senha alterada com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Senha atual incorreta"),
-        @ApiResponse(responseCode = "403", description = "Não autorizado"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "204", description = "Senha alterada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Senha atual incorreta"),
+            @ApiResponse(responseCode = "403", description = "Não autorizado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<Void> changePassword(
             @Parameter(description = "ID do usuário") @PathVariable UUID id,
             @Parameter(description = "Dados para alteração de senha") @Valid @RequestBody ChangePasswordRequest request,
             Authentication authentication) {
-        
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         userService.changePassword(id, request, authUserId, isAdmin);
         return ResponseEntity.noContent().build();
     }
-
-    // === OPERAÇÕES COM CARTÕES ===
 
     @PostMapping("/{userId}/cards")
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Adiciona cartão ao usuário", description = "Adiciona um novo cartão de ônibus ao usuário")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Cartão adicionado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados do cartão inválidos"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "201", description = "Cartão adicionado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados do cartão inválidos"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<CardSummary> addCardToUser(
             @Parameter(description = "ID do usuário") @PathVariable UUID userId,
             @Parameter(description = "Dados do cartão") @Valid @RequestBody AddCardToUserRequest request,
             Authentication authentication) {
-        
-        // Verificar se é o próprio usuário ou admin
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         if (!isAdmin && !authUserId.equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        
+
         CardSummary card = userService.addCardToUser(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
     }
@@ -276,24 +263,23 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Remove cartão do usuário", description = "Remove um cartão de ônibus do usuário")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Cartão removido com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Usuário ou cartão não encontrado")
+            @ApiResponse(responseCode = "204", description = "Cartão removido com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário ou cartão não encontrado")
     })
     public ResponseEntity<Void> removeCardFromUser(
             @Parameter(description = "ID do usuário") @PathVariable UUID userId,
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId,
             Authentication authentication) {
-        
-        // Verificar se é o próprio usuário ou admin
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         if (!isAdmin && !authUserId.equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        
+
         userService.removeCardFromUser(userId, cardId);
         return ResponseEntity.noContent().build();
     }
@@ -302,24 +288,23 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Ativa cartão do usuário", description = "Ativa um cartão de ônibus do usuário")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Cartão ativado com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Usuário ou cartão não encontrado")
+            @ApiResponse(responseCode = "204", description = "Cartão ativado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário ou cartão não encontrado")
     })
     public ResponseEntity<Void> activateCard(
             @Parameter(description = "ID do usuário") @PathVariable UUID userId,
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId,
             Authentication authentication) {
-        
-        // Verificar se é o próprio usuário ou admin
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         if (!isAdmin && !authUserId.equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        
+
         userService.toggleCardStatus(userId, cardId, true);
         return ResponseEntity.noContent().build();
     }
@@ -328,24 +313,23 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @Operation(summary = "Desativa cartão do usuário", description = "Desativa um cartão de ônibus do usuário")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Cartão desativado com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Usuário ou cartão não encontrado")
+            @ApiResponse(responseCode = "204", description = "Cartão desativado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário ou cartão não encontrado")
     })
     public ResponseEntity<Void> deactivateCard(
             @Parameter(description = "ID do usuário") @PathVariable UUID userId,
             @Parameter(description = "ID do cartão") @PathVariable UUID cardId,
             Authentication authentication) {
-        
-        // Verificar se é o próprio usuário ou admin
+
         UUID authUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"));
-            
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
         if (!isAdmin && !authUserId.equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        
+
         userService.toggleCardStatus(userId, cardId, false);
         return ResponseEntity.noContent().build();
     }

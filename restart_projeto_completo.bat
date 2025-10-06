@@ -70,7 +70,7 @@ echo 📋 CONFIGURAÇÃO FINAL:
 echo =====================
 echo 🛠️  Gateway:      http://localhost:8080
 echo 🔐 Auth Service:  http://localhost:8081  
-echo 👤 User Service:  http://localhost:8084 (NOVA PORTA)
+echo 👤 User Service:  http://localhost:8084
 echo 💳 Card Service:  http://localhost:8083
 echo 🌐 Frontend:     http://localhost:4200
 echo.

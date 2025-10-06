@@ -18,17 +18,14 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
         String path = request.getPath().value();
         String method = request.getMethod().toString();
         
-        // Log simples de requisições
-        System.out.println("🌐 Gateway - " + method + " " + path);
+        System.out.println("Gateway - " + method + " " + path);
         
-        // Headers de autenticação
         String authHeader = request.getHeaders().getFirst("Authorization");
         if (authHeader != null) {
-            System.out.println("� Token presente: " + authHeader.substring(0, Math.min(20, authHeader.length())) + "...");
+            System.out.println(" Token presente: " + authHeader.substring(0, Math.min(20, authHeader.length())) + "...");
         } else {
-            System.out.println("⚠️  Sem token de autenticação");
-        }
-        
+            System.out.println("Sem token de autenticação");
+        }        
         return chain.filter(exchange);
     }
 

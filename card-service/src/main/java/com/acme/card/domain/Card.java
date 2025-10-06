@@ -27,7 +27,7 @@ public class Card {
   private UUID id = UUID.randomUUID();
 
   @Column(name="numero_cartao", nullable=false, length=19)
-  private String numeroCartao;              // <-- STRING
+  private String numeroCartao;
 
   @Column(nullable=false, length=120)
   private String nome;
@@ -44,14 +44,14 @@ public class Card {
 
   protected Card() {}
 
-  private Card(String numero, String nome, TipoCartao tipo, UUID userId) { // <-- STRING aqui
+  private Card(String numero, String nome, TipoCartao tipo, UUID userId) {
     this.numeroCartao = numero;
     this.nome = nome;
     this.tipoCartao = tipo;
     this.userId = userId;
   }
 
-  public static Card create(String numero, String nome, TipoCartao tipo, UUID userId) { // <-- retorna Card
+  public static Card create(String numero, String nome, TipoCartao tipo, UUID userId) {
     return new Card(numero, nome, tipo, userId);
   }
 

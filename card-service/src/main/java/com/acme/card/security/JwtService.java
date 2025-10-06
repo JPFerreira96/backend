@@ -18,7 +18,7 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
-  private final SecretKey key;            // <-- SecretKey
+  private final SecretKey key;
   private final String issuer;
   private final String audience;
   private final int accessTtlMinutes;
@@ -53,7 +53,7 @@ public class JwtService {
       .id(UUID.randomUUID().toString())
       .issuedAt(Date.from(now))
       .expiration(Date.from(now.plus(accessTtlMinutes, ChronoUnit.MINUTES)))
-      .signWith(key, Jwts.SIG.HS256)   // <-- ok com SecretKey
+      .signWith(key, Jwts.SIG.HS256)
       .compact();
   }
 
@@ -61,7 +61,7 @@ public class JwtService {
     return Jwts.parser()
       .requireIssuer(issuer)
       .requireAudience(audience)
-      .verifyWith(key)                // <-- recebe SecretKey
+      .verifyWith(key)
       .build()
       .parseSignedClaims(token);
   }

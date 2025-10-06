@@ -21,10 +21,7 @@ import com.acme.user.web.dto.UserDTOs.CreateUserRequest;
 import com.acme.user.web.dto.UserDTOs.UpdateUserRequest;
 import com.acme.user.web.dto.UserDTOs.UserResponse;
 
-/**
- * Service responsável pelo gerenciamento de usuários
- * Implementa todas as operações CRUD e integração com cartões
- */
+
 @Service
 public class UserService {
 
@@ -45,9 +42,6 @@ public class UserService {
         this.cardClient = cardClient;
     }
 
-    /**
-     * Lista todos os usuários
-     */
     public List<UserResponse> getAllUsers() {
         log.debug("Listando todos os usuários");
         return repository.findAll().stream()
@@ -55,9 +49,6 @@ public class UserService {
                 .toList();
     }
 
-    /**
-     * Busca usuário por ID
-     */
     public UserResponse getUserById(UUID id) {
         log.debug("Buscando usuário por ID: {}", id);
         User user = repository.findById(id)
@@ -65,28 +56,22 @@ public class UserService {
         return mapToResponseWithCards(user);
     }
 
-    /**
-     * Cria um novo usuário
-     */
     @Transactional
     public UserResponse createUser(CreateUserRequest request, boolean isAdmin) {
         log.debug("Criando novo usuário: {}", request.email);
 
-        // Validação de role
         if (!isAdmin && request.role != null) {
             throw new AccessDeniedException("Role só pode ser definido por ADMIN");
         }
 
-        // Validação de email único
         repository.findByEmail(request.email).ifPresent(u -> {
             throw new IllegalArgumentException("Email já está em uso");
         });
 
-        // Criação do usuário
         User user = User.create(
                 request.name,
                 request.email,
-                encoder.encode(request.password), // <-- HASH AQUI
+                encoder.encode(request.password),
                 isAdmin && request.role != null ? normalizeRole(request.role) : "ROLE_USER");
 
         User savedUser = repository.save(user);
@@ -95,9 +80,6 @@ public class UserService {
         return mapToResponseWithCards(savedUser);
     }
 
-    /**
-     * Atualiza um usuário existente
-     */
     @Transactional
     public UserResponse updateUser(UUID id, UpdateUserRequest request, UUID authUserId, boolean isAdmin) {
         log.debug("Atualizando usuário: {}", id);
@@ -105,7 +87,6 @@ public class UserService {
         User user = repository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
 
-        // Verificação de autorização
         if (!isAdmin && !user.getId().equals(authUserId)) {
             throw new AccessDeniedException("Não autorizado a alterar este usuário");
         }
@@ -135,9 +116,6 @@ public class UserService {
         return mapToResponseWithCards(user);
     }
 
-    /**
-     * Remove um usuário
-     */
     @Transactional
     public void deleteUser(UUID id) {
         deleteUser(id, id, true);
@@ -159,9 +137,6 @@ public class UserService {
         log.info("Usuário removido com sucesso: {}", id);
     }
 
-    /**
-     * Altera senha do usuário
-     */
     @Transactional
     public void changePassword(UUID id, ChangePasswordRequest request, UUID authUserId, boolean isAdmin) {
         log.debug("Alterando senha do usuário: {}", id);
@@ -169,12 +144,10 @@ public class UserService {
         User user = repository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
 
-        // Verificação de autorização
         if (!isAdmin && !user.getId().equals(authUserId)) {
             throw new AccessDeniedException("Não autorizado a alterar senha deste usuário");
         }
 
-        // Verificação da senha atual (apenas para o próprio usuário)
         if (!isAdmin && !encoder.matches(request.currentPassword, user.getPasswordHash())) {
             throw new IllegalArgumentException("Senha atual incorreta");
         }
@@ -183,39 +156,28 @@ public class UserService {
         log.info("Senha alterada com sucesso para usuário: {}", id);
     }
 
-    // === OPERAÇÕES COM CARTÕES ===
-
-    /**
-     * Adiciona um cartão ao usuário
-     */
     @Transactional
     public CardSummary addCardToUser(UUID userId, AddCardToUserRequest request) {
         log.debug("Adicionando cartão ao usuário: {}", userId);
 
-        // Verifica se o usuário existe
         if (!repository.existsById(userId)) {
             throw new NoSuchElementException("Usuário não encontrado");
         }
 
-        // Cria o cartão via Card Service
         CardSummary card = cardClient.createCard(
-                userId,
-                request.numeroCartao,
-                request.nome,
-                request.tipoCartao.name());
+            userId,
+            request.numeroCartao,
+            request.nome,
+            request.tipoCartao.name());
 
         log.info("Cartão adicionado ao usuário {}: {}", userId, card.numeroCartao);
         return card;
     }
 
-    /**
-     * Remove um cartão do usuário
-     */
     @Transactional
     public void removeCardFromUser(UUID userId, UUID cardId) {
         log.debug("Removendo cartão {} do usuário: {}", cardId, userId);
 
-        // Verifica se o usuário existe
         if (!repository.existsById(userId)) {
             throw new NoSuchElementException("Usuário não encontrado");
         }
@@ -224,14 +186,10 @@ public class UserService {
         log.info("Cartão {} removido do usuário: {}", cardId, userId);
     }
 
-    /**
-     * Ativa/Desativa um cartão do usuário
-     */
     @Transactional
     public void toggleCardStatus(UUID userId, UUID cardId, boolean activate) {
         log.debug("{} cartão {} do usuário: {}", activate ? "Ativando" : "Desativando", cardId, userId);
 
-        // Verifica se o usuário existe
         if (!repository.existsById(userId)) {
             throw new NoSuchElementException("Usuário não encontrado");
         }
@@ -240,28 +198,18 @@ public class UserService {
         log.info("Cartão {} {} para usuário: {}", cardId, activate ? "ativado" : "desativado", userId);
     }
 
-    // === MÉTODOS INTERNOS ===
-
-    /**
-     * Busca usuário por email (para autenticação)
-     */
     public User internalFindByEmail(String email) {
         return repository.findByEmail(email).orElse(null);
     }
 
-    /**
-     * Cria usuário para uso interno (retorna User diretamente)
-     */
     @Transactional
     public User internalCreateUser(CreateUserRequest request) {
         log.debug("Criando usuário interno: {}", request.email);
 
-        // Validação de email único
         repository.findByEmail(request.email).ifPresent(u -> {
             throw new IllegalArgumentException("Email já está em uso");
         });
 
-        // Criação do usuário
         User user = User.create(
                 request.name,
                 request.email,
@@ -274,19 +222,13 @@ public class UserService {
         return savedUser;
     }
 
-        /**
-         * Verifica credenciais internamente (sem expor hash)
-         */
-        public User internalVerifyCredentials(String email, String rawPassword) {
-            var user = repository.findByEmail(email).orElse(null);
-            if (user == null) return null;
-            if (!encoder.matches(rawPassword, user.getPasswordHash())) return null;
-            return user;
-        }
+    public User internalVerifyCredentials(String email, String rawPassword) {
+        var user = repository.findByEmail(email).orElse(null);
+        if (user == null) return null;
+        if (!encoder.matches(rawPassword, user.getPasswordHash())) return null;
+        return user;
+    }
 
-    /**
-     * Mapeia User para UserResponse incluindo cartões
-     */
     private UserResponse mapToResponseWithCards(User user) {
         UserResponse response = UserMapper.toResponse(user);
 

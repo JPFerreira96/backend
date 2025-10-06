@@ -15,7 +15,7 @@ public class UserDTOs {
         public String name;
         public String email;
         public String role;
-        public List<CardSummary> cards; // Lista de cartões do usuário
+        public List<CardSummary> cards;
         
         public UserResponse() {}
         
@@ -41,7 +41,7 @@ public class UserDTOs {
         @Size(min = 8, max = 72, message = "Senha deve ter entre 8 e 72 caracteres")
         public String password;
         
-        public String role; // só aceito via endpoint ADMIN
+        public String role;
     }
     
     public static class UpdateUserRequest {

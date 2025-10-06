@@ -27,28 +27,27 @@ public class JwtFilter implements Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    var req = (HttpServletRequest) request;
-    var res = (HttpServletResponse) response;
+        var req = (HttpServletRequest) request;
+        var res = (HttpServletResponse) response;
 
-    String auth = req.getHeader("Authorization");
+        String auth = req.getHeader("Authorization");
 
-    // 👉 Early return aqui
-    if (auth == null || !auth.startsWith("Bearer ")) {
-      chain.doFilter(request, response);
-      return;
+        if (auth == null || !auth.startsWith("Bearer ")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        try {
+          var claims = jwt.parse(auth.substring(7)).getPayload();
+          var role = String.valueOf(claims.get("role"));
+          var authority = role.toUpperCase().startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase();
+          var authToken = new UsernamePasswordAuthenticationToken(
+              claims.getSubject(), null, List.of(new SimpleGrantedAuthority(authority)));
+          SecurityContextHolder.getContext().setAuthentication(authToken);
+          chain.doFilter(request, response);
+        } catch (Exception e) {
+          SecurityContextHolder.clearContext();
+          res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
     }
-
-    try {
-      var claims = jwt.parse(auth.substring(7)).getPayload();
-      var role = String.valueOf(claims.get("role"));
-      var authority = role.toUpperCase().startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase();
-      var authToken = new UsernamePasswordAuthenticationToken(
-          claims.getSubject(), null, List.of(new SimpleGrantedAuthority(authority)));
-      SecurityContextHolder.getContext().setAuthentication(authToken);
-      chain.doFilter(request, response);
-    } catch (Exception e) {
-      SecurityContextHolder.clearContext();
-      res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    }
-  }
 }

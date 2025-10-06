@@ -18,10 +18,6 @@ import com.acme.card.web.dto.CardDTOs.CardResponse;
 import com.acme.card.web.dto.CardDTOs.CreateCardRequest;
 import com.acme.card.web.dto.CardDTOs.UpdateCardRequest;
 
-/**
- * Service responsável pelo gerenciamento de cartões
- * Implementa todas as operações CRUD e validações de negócio
- */
 @Service
 public class CardService {
     
@@ -33,10 +29,7 @@ public class CardService {
     public CardService(CardRepository repository) {
         this.repository = repository;
     }
-
-    /**
-     * Lista todos os cartões (apenas para ADMIN)
-     */
+    
     public List<CardResponse> getAllCards() {
         log.debug("Listando todos os cartões");
         return repository.findAll().stream()
@@ -44,9 +37,6 @@ public class CardService {
             .toList();
     }
 
-    /**
-     * Busca cartão por ID
-     */
     public CardResponse getCardById(UUID cardId) {
         log.debug("Buscando cartão por ID: {}", cardId);
         Card card = repository.findById(cardId)
@@ -54,9 +44,6 @@ public class CardService {
         return CardMapper.toResponse(card);
     }
 
-    /**
-     * Lista cartões de um usuário específico
-     */
     public List<CardResponse> getUserCards(UUID userId, UUID authId, boolean isAdmin) {
         log.debug("Listando cartões do usuário: {}", userId);
         
@@ -69,9 +56,6 @@ public class CardService {
             .toList();
     }
 
-    /**
-     * Cria um novo cartão
-     */
     @Transactional
     public CardResponse createCard(CreateCardRequest request) {
         log.debug("Criando novo cartão para usuário: {}", request.userId);
@@ -97,9 +81,6 @@ public class CardService {
         return CardMapper.toResponse(savedCard);
     }
 
-    /**
-     * Adiciona cartão a um usuário (validando autorização)
-     */
     @Transactional
     public CardResponse addCardToUser(UUID userId, AddCardRequest request, UUID authId, boolean isAdmin) {
         log.debug("Adicionando cartão ao usuário: {}", userId);
@@ -128,9 +109,6 @@ public class CardService {
         return CardMapper.toResponse(savedCard);
     }
 
-    /**
-     * Atualiza um cartão existente
-     */
     @Transactional
     public CardResponse updateCard(UUID cardId, UpdateCardRequest request, UUID authId, boolean isAdmin) {
         log.debug("Atualizando cartão: {}", cardId);
@@ -156,9 +134,6 @@ public class CardService {
         return CardMapper.toResponse(card);
     }
 
-    /**
-     * Remove um cartão
-     */
     @Transactional
     public void removeCard(UUID cardId, UUID authId, boolean isAdmin) {
         log.debug("Removendo cartão: {}", cardId);
@@ -174,9 +149,6 @@ public class CardService {
         log.info("Cartão removido com sucesso: {}", cardId);
     }
 
-    /**
-     * Remove cartão de um usuário específico (com validação adicional)
-     */
     @Transactional
     public void removeCardFromUser(UUID userId, UUID cardId, UUID authId, boolean isAdmin) {
         log.debug("Removendo cartão {} do usuário: {}", cardId, userId);
@@ -184,7 +156,6 @@ public class CardService {
         Card card = repository.findById(cardId)
             .orElseThrow(() -> new NoSuchElementException("Cartão não encontrado"));
         
-        // Validação dupla: autorização e pertence ao usuário
         if (!isAdmin && !card.getUserId().equals(authId)) {
             throw new AccessDeniedException("Não autorizado a remover este cartão");
         }
@@ -197,27 +168,18 @@ public class CardService {
         log.info("Cartão {} removido do usuário: {}", cardId, userId);
     }
 
-    /**
-     * Ativa um cartão
-     */
     @Transactional
     public CardResponse activateCard(UUID cardId, UUID authId, boolean isAdmin) {
         log.debug("Ativando cartão: {}", cardId);
         return toggleCardStatus(cardId, true, authId, isAdmin);
     }
 
-    /**
-     * Desativa um cartão
-     */
     @Transactional
     public CardResponse deactivateCard(UUID cardId, UUID authId, boolean isAdmin) {
         log.debug("Desativando cartão: {}", cardId);
         return toggleCardStatus(cardId, false, authId, isAdmin);
     }
 
-    /**
-     * Alterna status de um cartão
-     */
     @Transactional
     public CardResponse toggleCardStatus(UUID cardId, boolean activate, UUID authId, boolean isAdmin) {
         Card card = repository.findById(cardId)
@@ -237,9 +199,6 @@ public class CardService {
         return CardMapper.toResponse(card);
     }
 
-    /**
-     * Lista cartões ativos por tipo (consulta pública)
-     */
     public List<CardResponse> getActiveCardsByType(String tipo) {
         log.debug("Listando cartões ativos do tipo: {}", tipo);
         return repository.findActiveByTipo(tipo).stream()
@@ -247,11 +206,6 @@ public class CardService {
             .toList();
     }
 
-    // === MÉTODOS INTERNOS (para comunicação entre serviços) ===
-
-    /**
-     * Lista cartões de um usuário (acesso interno)
-     */
     public List<CardResponse> internalGetUserCards(UUID userId) {
         log.debug("Acesso interno - listando cartões do usuário: {}", userId);
         return repository.findByUserId(userId).stream()
@@ -259,9 +213,6 @@ public class CardService {
             .toList();
     }
 
-    /**
-     * Cria cartão via acesso interno
-     */
     @Transactional
     public CardResponse internalCreateCard(CreateCardRequest request) {
         log.debug("Acesso interno - criando cartão para usuário: {}", request.userId);
@@ -288,8 +239,8 @@ public class CardService {
 
     private String gerarNumeroCartao() {
         int prefixo = 90;
-        int agencia = 10 + random.nextInt(90); // garante duas casas entre 10 e 99
-        int corpo = random.nextInt(100_000_000); // oito dígitos
+        int agencia = 10 + random.nextInt(90);
+        int corpo = random.nextInt(100_000_000);
         int digito = random.nextInt(10);
         return String.format("%02d.%02d.%08d-%d", prefixo, agencia, corpo, digito);
     }

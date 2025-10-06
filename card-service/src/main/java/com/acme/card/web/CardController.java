@@ -35,10 +35,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-/**
- * Controller REST para gerenciamento de cartões
- * Implementa todas as operações CRUD e funcionalidades específicas
- */
 @RestController
 @RequestMapping("/api/cards")
 @Tag(name = "Cards", description = "API para gerenciamento de cartões de ônibus")
@@ -50,8 +46,6 @@ public class CardController {
         this.cardService = cardService;
     }
 
-    // === OPERAÇÕES GERAIS DE CARTÕES ===
-
     @GetMapping("/me")
     @Operation(summary = "Lista meus cartões", description = "Retorna os cartões do usuário logado")
     public ResponseEntity<List<CardResponse>> getMyCards(Authentication authentication) {
@@ -61,7 +55,7 @@ public class CardController {
             return ResponseEntity.ok(cards);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(List.of()); // Retorna lista vazia em caso de erro
+            return ResponseEntity.ok(List.of());
         }
     }
 
@@ -107,7 +101,6 @@ public class CardController {
 
         UUID authUserId = UUID.fromString(auth.getName());
 
-        // Converte String -> enum
         var tipo = (body.type == null)
                 ? TipoCartao.COMUM
                 : TipoCartao.valueOf(body.type.trim().toUpperCase());
@@ -123,7 +116,6 @@ public class CardController {
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
     }
 
-    // Gerar número de cartão aleatório
     private String gerarNumeroCartao() {
         var r = new java.util.Random();
         int bloco1 = 10 + r.nextInt(89);

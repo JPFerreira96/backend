@@ -23,7 +23,7 @@ public class SecurityConfig {
     http
       .csrf(csrf -> csrf.disable())
       .cors(cors -> {
-        cors.configurationSource(corsConfigurationSource());  // Configura CORS
+        cors.configurationSource(corsConfigurationSource());
       })
       .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
       .headers(h -> h
@@ -41,21 +41,19 @@ public class SecurityConfig {
     return http.build();
   }
 
-  // Configuração do CORS com as origens permitidas
   private UrlBasedCorsConfigurationSource corsConfigurationSource() {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
-    config.addAllowedOriginPattern("http://localhost:4200"); // Usando addAllowedOriginPattern
-    config.addAllowedOriginPattern("http://localhost:4201"); // Porta alternativa Angular
-    config.addAllowedOriginPattern("http://example.com");    // Usando addAllowedOriginPattern
-    config.addAllowedMethod("GET");
+    config.addAllowedOriginPattern("http://localhost:4200");
+    config.addAllowedOriginPattern("http://localhost:4201");
+    config.addAllowedOriginPattern("http://example.com");
     config.addAllowedMethod("POST");
     config.addAllowedMethod("PUT");
     config.addAllowedMethod("DELETE");
-    config.addAllowedMethod("OPTIONS"); // Importante para preflight requests
-    config.addAllowedHeader("*"); // Permite qualquer cabeçalho
-    config.setAllowCredentials(true); // Permite credenciais (importante para JWT)
-    source.registerCorsConfiguration("/**", config); // Aplica as configurações de CORS a todas as URLs
+    config.addAllowedMethod("OPTIONS");
+    config.addAllowedHeader("*");
+    config.setAllowCredentials(true);
+    source.registerCorsConfiguration("/**", config);
     return source;
   }
 }
