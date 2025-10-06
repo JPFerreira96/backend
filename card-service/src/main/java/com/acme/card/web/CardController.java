@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.acme.card.domain.TipoCartao;
 import com.acme.card.service.CardService;
+import com.acme.card.utils.CardNumberGenerator;
 import com.acme.card.web.dto.CardDTOs;
 import com.acme.card.web.dto.CardDTOs.AddCardRequest;
 import com.acme.card.web.dto.CardDTOs.CardResponse;
@@ -106,7 +107,7 @@ public class CardController {
                 : TipoCartao.valueOf(body.type.trim().toUpperCase());
 
                 var req = new CardDTOs.AddCardRequest();
-                req.numeroCartao = gerarNumeroCartao();
+                req.numeroCartao = CardNumberGenerator.cardNumberRandomGenerator();
                 req.nome = (body.name != null && !body.name.isBlank())
                         ? body.name.trim()
                         : "Cartão " + tipo.name();
@@ -114,14 +115,6 @@ public class CardController {
 
         var card = cardService.addCardToUser(authUserId, req, authUserId, false);
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
-    }
-
-    private String gerarNumeroCartao() {
-        var r = new java.util.Random();
-        int bloco1 = 10 + r.nextInt(89);
-        int bloco2 = 1_000_0000 + r.nextInt(9_000_0000);
-        int dv = r.nextInt(10);
-        return String.format("90.%02d.%08d-%d", bloco1, bloco2, dv);
     }
 
     @PutMapping("/{cardId}")
@@ -313,6 +306,6 @@ public class CardController {
     @ApiResponse(responseCode = "200", description = "Lista de cartões retornada")
     public List<CardResponse> getCardsByType(
             @Parameter(description = "Tipo do cartão") @PathVariable String tipo) {
-        return cardService.getActiveCardsByType(tipo); // Reutiliza o método por enquanto
+        return cardService.getActiveCardsByType(tipo);
     }
 }

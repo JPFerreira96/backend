@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.acme.card.domain.Card;
 import com.acme.card.repository.CardRepository;
+import com.acme.card.utils.CardNumberGenerator;
 import com.acme.card.web.CardMapper;
 import com.acme.card.web.dto.CardDTOs.AddCardRequest;
 import com.acme.card.web.dto.CardDTOs.CardResponse;
@@ -62,7 +63,7 @@ public class CardService {
         
         String numeroCartao = request.numeroCartao;
         if (numeroCartao == null || numeroCartao.isBlank()) {
-            numeroCartao = gerarNumeroCartao();
+            numeroCartao = CardNumberGenerator.cardNumberRandomGenerator();
         }
 
         repository.findByUserIdAndNumeroCartao(request.userId, numeroCartao)
@@ -90,7 +91,7 @@ public class CardService {
         }
         
         String numeroCartao = (request.numeroCartao == null || request.numeroCartao.isBlank())
-                ? gerarNumeroCartao()
+                ? CardNumberGenerator.cardNumberRandomGenerator()
                 : request.numeroCartao;
 
         repository.findByUserIdAndNumeroCartao(userId, numeroCartao)
@@ -218,7 +219,7 @@ public class CardService {
         log.debug("Acesso interno - criando cartão para usuário: {}", request.userId);
         
         String numeroCartao = (request.numeroCartao == null || request.numeroCartao.isBlank())
-            ? gerarNumeroCartao()
+            ? CardNumberGenerator.cardNumberRandomGenerator()
             : request.numeroCartao;
 
         repository.findByUserIdAndNumeroCartao(request.userId, numeroCartao)
@@ -235,15 +236,5 @@ public class CardService {
         
         log.info("Cartão criado via acesso interno: {} para usuário: {}", savedCard.getId(), request.userId);
         return CardMapper.toResponse(savedCard);
-    }
-
-    private String gerarNumeroCartao() {
-        int prefixo = 90;
-        int agencia = 10 + random.nextInt(90);
-        int corpo = random.nextInt(100_000_000);
-        int digito = random.nextInt(10);
-        return String.format("%02d.%02d.%08d-%d", prefixo, agencia, corpo, digito);
-    }
-
-    
+    }    
 }

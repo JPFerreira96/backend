@@ -6,6 +6,7 @@ C:\Users\Júlio Paulo\Documents\GitHub\projeto-vem-urbana-pe\backend\card-servic
 C:\Users\Júlio Paulo\Documents\GitHub\projeto-vem-urbana-pe\backend\card-service\src\main\java\com\acme\card\security\JwtFilter.java
 C:\Users\Júlio Paulo\Documents\GitHub\projeto-vem-urbana-pe\backend\card-service\src\main\java\com\acme\card\security\JwtService.java
 C:\Users\Júlio Paulo\Documents\GitHub\projeto-vem-urbana-pe\backend\card-service\src\main\java\com\acme\card\service\CardService.java
+C:\Users\Júlio Paulo\Documents\GitHub\projeto-vem-urbana-pe\backend\card-service\src\main\java\com\acme\card\utils\CardNumberGenerator.java
 C:\Users\Júlio Paulo\Documents\GitHub\projeto-vem-urbana-pe\backend\card-service\src\main\java\com\acme\card\web\CardController.java
 C:\Users\Júlio Paulo\Documents\GitHub\projeto-vem-urbana-pe\backend\card-service\src\main\java\com\acme\card\web\CardMapper.java
 C:\Users\Júlio Paulo\Documents\GitHub\projeto-vem-urbana-pe\backend\card-service\src\main\java\com\acme\card\web\DevController.java

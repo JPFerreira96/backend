@@ -47,7 +47,8 @@ public class SecurityConfig {
     config.addAllowedOriginPattern("http://localhost:4200");
     config.addAllowedOriginPattern("http://localhost:4201");
     config.addAllowedOriginPattern("http://example.com");
-    config.addAllowedMethod("POST");
+  config.addAllowedMethod("GET");
+  config.addAllowedMethod("POST");
     config.addAllowedMethod("PUT");
     config.addAllowedMethod("DELETE");
     config.addAllowedMethod("OPTIONS");
